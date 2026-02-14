@@ -2,7 +2,6 @@
   "miniprogramRoot": "dist/",
   "projectname": "hotel-booking-app",
   "description": "Hotel Booking Mobile App",
-  "appid": "wx9a07043c6fc34eac",
   "setting": {
     "urlCheck": true,
     "es6": false,
