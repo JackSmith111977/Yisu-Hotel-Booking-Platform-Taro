@@ -11,12 +11,12 @@ export default defineAppConfig({
     // 酒店分包
     {
       root: "packages/hotel",
-      pages: [],
+      pages: ["pages/index"],
     },
     // 认证分包
     {
       root: "packages/auth",
-      pages: [],
+      pages: ["pages/index"],
     },
   ],
   // 3. TabBar 配置
