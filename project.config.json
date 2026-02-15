@@ -1,5 +1,6 @@
 {
   "miniprogramRoot": "dist/",
+  "cloudfunctionRoot": "cloudfunctions/",
   "projectname": "hotel-booking-app",
   "description": "Hotel Booking Mobile App",
   "setting": {
@@ -34,5 +35,8 @@
     "ignore": [],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {},
+  "appid": "wx36af5ff67f379159",
+  "libVersion": "3.14.2",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
 }
