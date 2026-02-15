@@ -1,8 +1,8 @@
 import { RoutePath } from "@/constants/route";
-import "./index.scss";
 import { navigateTo } from "@/utils/router";
 import { Button } from "@nutui/nutui-react-taro";
 import { Text, View } from "@tarojs/components";
+import "./index.scss";
 
 export default function Index() {
   const handleGoSearch = () => {
@@ -16,13 +16,13 @@ export default function Index() {
   };
 
   return (
-    <View className="index-page">
-      <View className="header">
-        <Text className="title">欢迎来到酒店预订平台</Text>
+    <View className='index-page'>
+      <View className='header'>
+        <Text className='title'>欢迎来到酒店预订平台</Text>
       </View>
 
-      <View className="action-area">
-        <Button type="primary" onClick={handleGoSearch}>
+      <View className='action-area'>
+        <Button type='primary' onClick={handleGoSearch}>
           搜索酒店
         </Button>
       </View>
