@@ -1,0 +1,157 @@
+/* HotelSearchBar - 仅布局样式，组件样式由 NutUI 自带 */
+
+.hotel-search-bar {
+  background: #fff;
+}
+
+/* ========== 顶部横栏 ========== */
+.search-row {
+  display: flex;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.date-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.date-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-label {
+  font-size: 24px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.date-value {
+  font-size: 36px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+}
+
+.date-sep {
+  font-size: 28px;
+  color: #ccc;
+  padding: 0 8px;
+}
+
+.nights-tag {
+  padding: 8px 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin: 0 24px;
+  flex-shrink: 0;
+}
+
+.nights-text {
+  font-size: 24px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.room-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.room-label {
+  font-size: 24px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.room-value {
+  font-size: 28px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* ========== 底部弹窗内容 ========== */
+.nut-calendar {
+  --nutui-calendar-active-background-color: #0066FF;
+  --nutui-calendar-choose-background-color: rgba(0, 102, 255, 0.08);
+  --nutui-calendar-choose-color: #0066FF;
+  --nutui-calendar-choose-disable-background-color: rgba(180, 180, 180, 0.1);
+  --nutui-calendar-disable-color: #ccc;
+  --nutui-calendar-base-font-size: 28px;
+  --nutui-calendar-title-font-size: 32px;
+  --nutui-calendar-title-font-weight: 600;
+  --nutui-calendar-sub-title-font-size: 26px;
+  --nutui-calendar-day67-color: #0066FF;
+  --nutui-calendar-day-height: 80px;
+  --nutui-calendar-day-font-weight: 500;
+  --nutui-calendar-day-active-border-radius: 8px;
+
+  .nut-calendar-footer {    
+    padding: 5px 0 calc(5px + env(safe-area-inset-bottom));
+  }
+
+  .calendar-footer {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.room-popup {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tip-bar {
+  display: flex;
+  align-items: center;
+  padding: 20px 32px;
+  background: #f7f8fa;
+  gap: 8px;
+}
+
+.tip-icon {
+  font-size: 28px;
+  color: #999;
+}
+
+.tip-text {
+  font-size: 26px;
+  color: #999;
+}
+
+/* 每一行：标签 + InputNumber */
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 36px 32px;
+}
+
+.field-label {
+  font-size: 32px;
+  color: #333;
+}
+
+.field-label-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-sub {
+  font-size: 24px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.popup-footer {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}

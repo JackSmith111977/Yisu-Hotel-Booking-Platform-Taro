@@ -5,7 +5,7 @@ import { StarF } from '@nutui/icons-react-taro'
 import { useState } from 'react'
 import { HotelType } from '../../../../types/hotel'
 import TopNavBar from '../components/TopNavBar'
-// import HotelSearchBar from '../components/HotelSearchBar'
+import HotelSearchBar from '../components/HotelSearchBar'
 import './index.scss'
 
 const HotelDetail = () => {
@@ -121,7 +121,7 @@ const HotelDetail = () => {
       {/* ====== 房间列表 ====== */}
       <View className='booking-section'>
       {/* 日期 & 入住信息 */}
-        {/* <HotelSearchBar /> */}
+        <HotelSearchBar />
 
         {/* 筛选标签 */}
 
