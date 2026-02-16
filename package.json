@@ -43,6 +43,7 @@
     "@tarojs/components": "4.1.11",
     "@tarojs/helper": "4.1.11",
     "@tarojs/plugin-framework-react": "4.1.11",
+    "@tarojs/plugin-html": "^4.1.11",
     "@tarojs/plugin-platform-alipay": "4.1.11",
     "@tarojs/plugin-platform-h5": "4.1.11",
     "@tarojs/plugin-platform-harmony-hybrid": "4.1.11",
@@ -55,8 +56,10 @@
     "@tarojs/runtime": "4.1.11",
     "@tarojs/shared": "4.1.11",
     "@tarojs/taro": "4.1.11",
+    "dayjs": "^1.11.19",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "url-polyfill": "^1.1.14",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

@@ -1,11 +1,12 @@
+import { useEffect, useState } from "react";
 import { RoutePath } from "@/constants/route";
-import "./index.scss";
 import { navigateTo } from "@/utils/router";
 import { Button } from "@nutui/nutui-react-taro";
 import { Text, View } from "@tarojs/components";
-import { useEffect, useState } from "react";
 import Taro from "@tarojs/taro";
 import { callSupabase } from "@/utils/supabase";
+import "./index.scss";
+
 
 export default function Index() {
   const [status, setStatus] = useState<string>("等待测试...");
@@ -59,9 +60,9 @@ export default function Index() {
   };
 
   return (
-    <View className="index-page">
-      <View className="header">
-        <Text className="title">欢迎来到酒店预订平台</Text>
+    <View className='index-page'>
+      <View className='header'>
+        <Text className='title'>欢迎来到酒店预订平台</Text>
       </View>
 
       {/* --- 测试区域 --- */}
@@ -90,7 +91,7 @@ export default function Index() {
           {status}
         </View>
 
-        <Button type="primary" size="small" onClick={handleFetchHotels}>
+        <Button type='primary' size='small' onClick={handleFetchHotels}>
           查询 Hotels 表
         </Button>
 
@@ -116,8 +117,8 @@ export default function Index() {
       </View>
       {/* ---------------- */}
 
-      <View className="action-area">
-        <Button type="primary" onClick={handleGoSearch}>
+      <View className='action-area'>
+        <Button type='primary' onClick={handleGoSearch}>
           搜索酒店
         </Button>
       </View>

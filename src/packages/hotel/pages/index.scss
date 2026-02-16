@@ -1,0 +1,245 @@
+/* ================================
+   酒店详情页样式
+   ================================ */
+
+// 变量
+$primary-blue: #0068c9;
+$price-orange: #ff6600;
+$text-primary: #1a1a1a;
+$text-secondary: #666666;
+$text-light: #999999;
+$bg-page: #f5f5f5;
+$bg-white: #ffffff;
+$border-color: #eeeeee;
+
+.hotel-detail {
+  background: $bg-page;
+  min-height: 100vh;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+}
+
+/* ====== 轮播区域 ====== */
+.banner-section {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  overflow: hidden;
+}
+
+.banner-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.banner-image {
+  width: 100%;
+  height: 520px;
+}
+
+/* 图片计数 */
+.slide-counter {
+  position: absolute;
+  bottom: 100px;
+  right: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  padding: 4px 16px;
+  z-index: 10;
+}
+
+.slide-counter-text {
+  color: #fff;
+  font-size: 22px;
+}
+
+/* ====== 酒店信息区域 ====== */
+.hotel-info-section {
+  background: $bg-white;
+  border-radius: 24px 24px 0 0;
+  margin-top: -24px;
+  position: relative;
+  z-index: 5;
+  padding: 32px 24px 24px;
+}
+
+.hotel-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.hotel-name-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hotel-name {
+  font-size: 40px;
+  font-weight: 700;
+  color: $text-primary;
+  line-height: 1.3;
+}
+
+.stars-row {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+  gap: 4px;
+}
+
+.hotel-name-en {
+  font-size: 27px;
+  color: $text-light;
+  margin-top: 4px;
+  display: block;
+}
+
+/* 地理位置 */
+.location-row {
+  display: flex;
+  align-items: center;
+  padding: 20px 0;
+  border-top: 1px solid $border-color;
+  margin-top: 8px;
+}
+
+.location-icon {
+  font-size: 28px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.location-text {
+  font-size: 24px;
+  color: $text-secondary;
+  line-height: 1.5;
+}
+
+/* ====== 日期 & 入住信息 ====== */
+.booking-section {
+  background: $bg-white;
+  margin-top: 16px;
+  padding: 24px;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-labels {
+  display: flex;
+  gap: 60px;
+  margin-bottom: 4px;
+}
+
+.date-label-small {
+  font-size: 22px;
+  color: $text-light;
+}
+
+.date-label-right {
+  margin-left: 12px;
+}
+
+.date-values {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-text {
+  font-size: 34px;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.date-separator {
+  font-size: 28px;
+  color: $text-light;
+}
+
+.night-count {
+  font-size: 24px;
+  color: $text-secondary;
+  padding: 4px 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.guest-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.guest-label {
+  font-size: 22px;
+  color: $text-light;
+  margin-bottom: 4px;
+}
+
+.guest-text {
+  font-size: 26px;
+  color: $text-primary;
+  font-weight: 500;
+}
+
+/* ====== 底部操作栏 ====== */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $bg-white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+.bottom-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottom-chat-icon {
+  font-size: 36px;
+}
+
+.bottom-chat-text {
+  font-size: 20px;
+  color: $text-secondary;
+  margin-top: 2px;
+}
+
+.bottom-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.bottom-price {
+  font-size: 42px;
+  font-weight: 700;
+  color: $price-orange;
+}
+
+.bottom-btn {
+  background: $primary-blue;
+  border-radius: 40px;
+  padding: 18px 40px;
+}
