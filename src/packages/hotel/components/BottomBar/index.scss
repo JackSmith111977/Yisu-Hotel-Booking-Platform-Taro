@@ -1,0 +1,47 @@
+$primary-blue: #0068c9;
+$price-orange: #ff6600;
+$text-secondary: #666666;
+$bg-white: #ffffff;
+
+/* ====== 底部操作栏 ====== */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $bg-white;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 24px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+.bottom-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.bottom-price-content {
+  display: flex;
+  align-items: baseline;
+}
+
+.bottom-price {
+  font-weight: 700;
+  color: $price-orange;
+}
+
+.bottom-price-suffix {
+  font-size: 22px;
+  color: $price-orange;
+  margin-left: 2px;
+}
+
+.bottom-btn {
+  background: $primary-blue;
+  border-radius: 20px;
+}

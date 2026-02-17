@@ -1,8 +1,8 @@
 import { View } from '@tarojs/components'
 import { Button } from '@nutui/nutui-react-taro'
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/utils/supabase'
 import Taro from '@tarojs/taro';
+import { callSupabase } from "@/utils/supabase";
 import './index.scss'
 
 export default function Index() {
@@ -11,20 +11,23 @@ export default function Index() {
 
   useEffect(() => {
     const fetchHotels = async () => {
-      const { data, error } = await supabase
-        .from('hotels')
-        .select('*')
+      const { data, error } = await callSupabase({
+        action: "table",
+        table: "hotels",
+        method: "select",
+        query: "*",
+      });
+  
       if (error) {
-        console.error('获取酒店数据失败:', error)
-        return
+        console.error("获取酒店数据失败:", error);
+        return;
       }
-      if (data){
-        // console.log('酒店数据:', data);
+      if (data) {
         setHotels(data);
-      } 
-    }
-    fetchHotels()
-  }, [])
+      }
+    };
+    fetchHotels();
+  }, []);
 
   const handleClick = useCallback((id: number) => {
     const data = hotels.filter(item => item.id === id)

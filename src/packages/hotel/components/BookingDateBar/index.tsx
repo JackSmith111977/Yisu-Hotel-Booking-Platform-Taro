@@ -7,6 +7,7 @@ import {
   Divider,
   Button,
 } from '@nutui/nutui-react-taro'
+import RoomList from '../RoomList'
 import './index.scss'
 
 /* ========== 工具函数 ========== */
@@ -38,13 +39,13 @@ interface RoomGuest {
   children: number
 }
 
-interface HotelSearchBarProps {
+interface BookingDateBarProps {
   onDateChange?: (start: Date, end: Date, nights: number) => void
   onRoomGuestChange?: (data: RoomGuest) => void
 }
 
 /* ========== 主组件 ========== */
-const HotelSearchBar = ({ onDateChange, onRoomGuestChange}: HotelSearchBarProps) => {
+const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps) => {
   /* ---- 日期 ---- */
   const [startDate, setStartDate] = useState<Date>(() => new Date())
   const [endDate, setEndDate] = useState<Date>(() => {
@@ -107,7 +108,6 @@ const HotelSearchBar = ({ onDateChange, onRoomGuestChange}: HotelSearchBarProps)
   /* ---- 渲染 ---- */
   return (
     <View className='hotel-search-bar'>
-      {/* 顶部横栏 */}
       <View className='search-row'>
         {/* 日期 */}
         <View className='date-section' onClick={() => setCalendarVisible(true)}>
@@ -136,7 +136,7 @@ const HotelSearchBar = ({ onDateChange, onRoomGuestChange}: HotelSearchBarProps)
         </View>
       </View>
 
-      {/* ===== 弹窗组件 ===== */}
+      {/* 弹窗组件 */}
       <Calendar
         visible={calendarVisible}
         defaultValue={calendarDefault}
@@ -259,4 +259,4 @@ const HotelSearchBar = ({ onDateChange, onRoomGuestChange}: HotelSearchBarProps)
   )
 }
 
-export default React.memo(HotelSearchBar)
+export default React.memo(BookingDateBar)
