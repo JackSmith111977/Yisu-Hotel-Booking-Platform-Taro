@@ -5,7 +5,6 @@ import {
   Image,
   SearchBar,
 } from "@nutui/nutui-react-taro";
-import popup from "@nutui/nutui-react-taro/dist/es/packages/popup";
 import { Text, View } from "@tarojs/components";
 import { useEffect, useState } from "react";
 
