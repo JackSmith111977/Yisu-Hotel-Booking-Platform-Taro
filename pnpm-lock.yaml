@@ -29,6 +29,9 @@ importers:
       '@tarojs/plugin-framework-react':
         specifier: 4.1.11
         version: 4.1.11(@pmmmwh/react-refresh-webpack-plugin@0.5.17(react-refresh@0.14.2)(type-fest@2.19.0)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.18))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.18))))(@tarojs/helper@4.1.11(@swc/helpers@0.5.18))(@tarojs/runtime@4.1.11)(@tarojs/shared@4.1.11)(react@18.3.1)(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.18)))
+      '@tarojs/plugin-html':
+        specifier: ^4.1.11
+        version: 4.1.11(@tarojs/helper@4.1.11(@swc/helpers@0.5.18))(@tarojs/runtime@4.1.11)(@tarojs/shared@4.1.11)
       '@tarojs/plugin-platform-alipay':
         specifier: 4.1.11
         version: 4.1.11(@tarojs/service@4.1.11(@swc/helpers@0.5.18))(@tarojs/shared@4.1.11)
@@ -74,6 +77,9 @@ importers:
       react-dom:
         specifier: ^18.0.0
         version: 18.3.1(react@18.3.1)
+      url-polyfill:
+        specifier: ^1.1.14
+        version: 1.1.14
       zustand:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@18.3.28)(react@18.3.1)
@@ -1839,6 +1845,14 @@ packages:
 
   '@tarojs/plugin-generator@4.1.11':
     resolution: {integrity: sha512-cM+JsQjkVdu/tLEA1hE7HE7xlTKwInqaFKhTVJHfLL0bf87nPfjvCby3zNlN5KwelJ3CYn0SqRqpskziAzOtMA==}
+
+  '@tarojs/plugin-html@4.1.11':
+    resolution: {integrity: sha512-yHsry/YHPlzHeRA0621KzleXEWqUDZqCpHi5Lg1k53NZsVQ0fH2GdZlTDUXX5qAQw99Vvu/YIAkGGZ0UGrG8Tw==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@tarojs/helper': 4.1.11
+      '@tarojs/runtime': 4.1.11
+      '@tarojs/shared': 4.1.11
 
   '@tarojs/plugin-platform-alipay@4.1.11':
     resolution: {integrity: sha512-Uj8LF/cdb3M3sWOEU4FFv6UZHWInClFS0RMi0nyc82PBYoZ4muQ2h9FlfZUw+LOqWp1T5lvGWXdH7oyOJWZufA==}
@@ -7142,6 +7156,9 @@ packages:
   url-parse@1.5.10:
     resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
 
+  url-polyfill@1.1.14:
+    resolution: {integrity: sha512-p4f3TTAG6ADVF3mwbXw7hGw+QJyw5CnNGvYh5fCuQQZIiuKUswqcznyV3pGDP9j0TSmC4UvRKm8kl1QsX1diiQ==}
+
   url-to-options@1.0.1:
     resolution: {integrity: sha512-0kQLIzG4fdk/G5NONku64rSH/x32NOA39LVQqlK8Le6lvTF6GGRJpqaQFGgU+CLwySIqBSMdwYM0sYcW9f6P4A==}
     engines: {node: '>= 4'}
@@ -9225,6 +9242,12 @@ snapshots:
       - '@types/node'
       - babel-plugin-macros
       - supports-color
+
+  '@tarojs/plugin-html@4.1.11(@tarojs/helper@4.1.11(@swc/helpers@0.5.18))(@tarojs/runtime@4.1.11)(@tarojs/shared@4.1.11)':
+    dependencies:
+      '@tarojs/helper': 4.1.11(@swc/helpers@0.5.18)
+      '@tarojs/runtime': 4.1.11
+      '@tarojs/shared': 4.1.11
 
   '@tarojs/plugin-platform-alipay@4.1.11(@tarojs/service@4.1.11(@swc/helpers@0.5.18))(@tarojs/shared@4.1.11)':
     dependencies:
@@ -15386,6 +15409,8 @@ snapshots:
     dependencies:
       querystringify: 2.2.0
       requires-port: 1.0.0
+
+  url-polyfill@1.1.14: {}
 
   url-to-options@1.0.1: {}
 
