@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
-import { RoutePath } from "@/constants/route";
-import { navigateTo } from "@/utils/router";
-import { Button } from "@nutui/nutui-react-taro";
-import { Text, View } from "@tarojs/components";
-import Taro from "@tarojs/taro";
-import { callSupabase } from "@/utils/supabase";
+import { DateSelector } from "@/components/home/DateSelector";
+import { FilterBar } from "@/components/home/FilterBar";
+import { HomeHeader } from "@/components/home/HomeHeader";
+import { useHomeLogic } from "@/hooks/home/hooks";
+import { Button, Divider } from "@nutui/nutui-react-taro";
+import { View } from "@tarojs/components";
+import { useEffect } from "react";
 import "./index.scss";
-
 
 export default function Index() {
   // 解构出useHomeLogic返回的所有成员
@@ -24,9 +23,10 @@ export default function Index() {
   }, [initLocation]);
 
   return (
-    <View className='index-page'>
-      <View className='header'>
-        <Text className='title'>欢迎来到酒店预订平台</Text>
+    <View className="home-page">
+      {/* Banner 区域 */}
+      <View className="banner-area">
+        <View className="banner-title">易宿-酒店预订平台</View>
       </View>
 
       {/* 搜索卡片 */}
@@ -50,9 +50,12 @@ export default function Index() {
           }}
         />
 
-        <Button type='primary' size='small' onClick={handleFetchHotels}>
-          查询 Hotels 表
-        </Button>
+        {/* 日期选择 */}
+        <DateSelector
+          startDate={searchState.checkInDate}
+          endDate={searchState.checkOutDate}
+          onConfirm={handleDateConfirm}
+        />
 
         <Divider
           style={{
@@ -73,9 +76,22 @@ export default function Index() {
           }}
         />
 
-      <View className='action-area'>
-        <Button type='primary' onClick={handleGoSearch}>
-          搜索酒店
+        {/* 搜索按钮 */}
+        <Button
+          className="search-btn"
+          type="primary"
+          block
+          onClick={handleSearch}
+          style={{
+            marginTop: "24px",
+            borderRadius: "24px",
+            height: "48px",
+            fontSize: "18px",
+            background: "linear-gradient(135deg, #fa2c19 0%, #fa6419 100%)",
+            border: "none",
+          }}
+        >
+          开始搜索
         </Button>
       </View>
     </View>
