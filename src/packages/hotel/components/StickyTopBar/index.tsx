@@ -1,9 +1,14 @@
-import { View } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { ArrowLeft, HeartF, ShareF } from '@nutui/icons-react-taro'
 import './index.scss'
 
-export default function TopNavBar() {
+interface StickyTopBarProps {
+  visible: boolean
+  name?: string
+}
+
+export default function StickyTopBar({ visible, name }: StickyTopBarProps) {
   const systemInfo = Taro.getWindowInfo()
   const menuBtn = Taro.getMenuButtonBoundingClientRect()
 
@@ -17,11 +22,14 @@ export default function TopNavBar() {
 
   return (
     <View
-      className='top-nav'
-      style={{ paddingTop: `${statusBarHeight}px` }}
+      className={`sticky-nav ${visible ? 'sticky-nav-visible' : ''}`}
+      style={{ 
+        paddingTop: `${statusBarHeight}px`,
+        paddingBottom: '10px'
+      }}
     >
       <View
-        className='nav-inner'
+        className='sticky-nav-inner'
         style={{
           height: `${btnHeight}px`,
           marginTop: `${btnTop}px`,
@@ -30,25 +38,25 @@ export default function TopNavBar() {
         }}
       >
         <View
-          className='nav-btn'
+          className='sticky-nav-btn'
           style={{ width: `${btnHeight}px`, height: `${btnHeight}px` }}
           onClick={handleBack}
         >
-          <ArrowLeft size={18} color='#fff' />
+          <ArrowLeft size={18} color='#333' />
         </View>
 
-        <View className='nav-right'>
-          <View
-            className='nav-btn'
-            style={{ width: `${btnHeight}px`, height: `${btnHeight}px` }}
-          >
-            <HeartF size={16} color='#fff' />
+        <View className='sticky-nav-title'>
+          <Text className='sticky-nav-title-text'>{name}</Text>
+        </View>
+
+        <View className='sticky-nav-right'>
+          <View className='sticky-nav-action'>
+            <HeartF size={14} color='#333' />
+            <Text className='sticky-nav-action-label'>收藏</Text>
           </View>
-          <View
-            className='nav-btn'
-            style={{ width: `${btnHeight}px`, height: `${btnHeight}px` }}
-          >
-            <ShareF size={16} color='#fff' />
+          <View className='sticky-nav-action'>
+            <ShareF size={14} color='#333' />
+            <Text className='sticky-nav-action-label'>分享</Text>
           </View>
         </View>
       </View>
