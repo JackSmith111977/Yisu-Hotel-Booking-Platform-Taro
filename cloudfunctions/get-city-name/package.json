@@ -1,0 +1,11 @@
+{
+  "name": "get-city-name",
+  "version": "1.0.0",
+  "description": "Reverse Geocoding Cloud Function",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "axios": "^1.6.0"
+  },
+  "author": "Hotel Booking App"
+}
