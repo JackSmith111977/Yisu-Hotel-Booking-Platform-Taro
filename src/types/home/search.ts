@@ -32,3 +32,30 @@ export interface HotelType {
   region: string | null; // 存储城市/地区信息
   album: string[] | null; // text[]
 }
+
+/**
+ * 搜索排序枚举
+ * @description 用于控制列表排序策略
+ */
+export type HotelSearchSort =
+  | "recommended"
+  | "star_desc"
+  | "star_asc"
+  | "price_asc"
+  | "price_desc"
+  | "score_desc";
+
+/**
+ * 搜索结果列表项
+ * @description 在 HotelType 基础上增加聚合字段
+ * @property {number|null} min_price - 聚合计算得到的最低起价
+ * @property {number|null} review_score - 聚合计算得到的评分
+ * @property {string[]|null} tags - 标签集合
+ * @property {boolean|null} is_sold_out - 售罄状态
+ */
+export interface HotelSearchItem extends HotelType {
+  min_price: number | null;
+  review_score: number | null;
+  tags: string[] | null;
+  is_sold_out: boolean | null;
+}
