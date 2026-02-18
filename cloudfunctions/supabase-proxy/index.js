@@ -37,17 +37,56 @@ exports.main = async (event, context) => {
       let response;
 
       if (method === "select") {
-        // 处理查询参数
+        // 1. 在这里初始化 queryParams，确保后续逻辑都能访问
         const queryParams = new URLSearchParams();
+
+        // 2. 处理 select 参数
         if (query) queryParams.append("select", query);
 
-        // 简单的等于过滤
-        if (params && params.eq) {
-          Object.keys(params.eq).forEach((key) => {
-            queryParams.append(key, `eq.${params.eq[key]}`);
+        // 3. 处理其他 params
+        if (params) {
+          const operators = [
+            "eq",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "neq",
+            "like",
+            "ilike",
+            "is",
+            "in",
+            "match", // 正则匹配
+            "fts",
+            "plfts",
+            "phfts",
+            "wfts", // 全文搜索相关
+            "cs",
+            "cd",
+            "ov",
+            "sl",
+            "sr",
+            "nxr",
+            "nxl",
+            "adj", // 范围/数组操作符
+          ];
+
+          operators.forEach((op) => {
+            if (params[op]) {
+              Object.keys(params[op]).forEach((key) => {
+                queryParams.append(key, `${op}.${params[op][key]}`);
+              });
+            }
           });
+
+          // 支持特殊参数
+          if (params.or) queryParams.append("or", params.or);
+          if (params.order) queryParams.append("order", params.order);
+          if (params.limit) queryParams.append("limit", params.limit);
+          if (params.offset) queryParams.append("offset", params.offset);
         }
 
+        // 4. 发起请求
         response = await axios.get(url, { headers, params: queryParams });
       } else if (method === "insert") {
         response = await axios.post(url, data, { headers });
