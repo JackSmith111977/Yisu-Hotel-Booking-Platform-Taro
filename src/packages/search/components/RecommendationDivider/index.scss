@@ -1,0 +1,23 @@
+.recommendation-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0; // 调整为更适合移动端的间距
+  opacity: 0.6;
+
+  .divider-text {
+    font-size: 28px; // 对应原设计的 14px (假设设计稿为 750px 宽)
+    color: #666;
+    margin: 0 20px;
+  }
+
+  // 使用伪元素实现左右线条，减少 DOM 节点
+  &::before,
+  &::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 2px;
+    background-color: #ccc;
+  }
+}

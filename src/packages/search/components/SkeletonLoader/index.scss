@@ -1,0 +1,75 @@
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.skeleton-loader {
+  padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.skeleton-item {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 16px;
+  width: 100%;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* 扫光动画通用类 */
+.skeleton-anim {
+  background: #F0F2F5;
+  background-image: linear-gradient(
+    90deg,
+    #F0F2F5 0%,
+    #E6E8EB 50%,
+    #F0F2F5 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.skeleton-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.skeleton-content {
+  flex: 1;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  /* 确保高度撑满以对齐底部 */
+  height: 100px; 
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 20px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-score {
+  width: 30%;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.skeleton-price {
+  width: 40%;
+  height: 24px;
+  border-radius: 4px;
+  /* 自动推到底部 */
+  margin-top: auto; 
+}

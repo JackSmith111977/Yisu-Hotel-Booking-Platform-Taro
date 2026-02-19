@@ -20,7 +20,15 @@ export const callSupabase = async (payload: {
 
     const result: any = res.result;
     if (!result.success) {
-      throw new Error(result.error || "Unknown error in cloud function");
+      let errorMessage = "Unknown error in cloud function";
+      if (result.error) {
+        if (typeof result.error === "string") {
+          errorMessage = result.error;
+        } else if (typeof result.error === "object") {
+          errorMessage = result.error.message || JSON.stringify(result.error);
+        }
+      }
+      throw new Error(errorMessage);
     }
 
     return { data: result.data, error: null };
