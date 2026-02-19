@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { searchHotels, SearchHotelsParams } from "@/services/hotel";
+import {
+  searchHotels,
+  getRecommendedHotels,
+  SearchHotelsParams,
+} from "@/services/hotel";
 import { HotelSearchItem } from "@/types/home/search";
 
 // 定义结果类型
@@ -112,86 +116,47 @@ export const useSearchList = (
           const RECOMMEND_LIMIT = 10;
 
           try {
-            // console.log("🔍 开始推荐流程, params:", params);
+            // 准备排除列表：包含主搜索结果中的所有酒店 ID
+            const excludeIds = res.map((item) => item.id);
+            const finalRecommendations: HotelSearchItem[] = [];
 
             // Req 1 (同城): 仅当 params.city 存在时发起
-            let localRes: HotelSearchItem[] = [];
             if (params.city) {
-              const localParams: SearchHotelsParams = {
+              const localResult = await getRecommendedHotels({
                 city: params.city,
-                checkInDate: params.checkInDate,
-                checkOutDate: params.checkOutDate,
-                keyword: undefined,
-                tags: undefined,
-                sort: "score_desc",
-                page: 1,
-                pageSize: RECOMMEND_LIMIT,
-              };
-              localRes = await searchHotels(localParams);
+                limit: RECOMMEND_LIMIT, // 尝试获取足够的同城推荐
+                strategy: "same_city_score",
+                excludeIds, // 传递需要排除的 ID
+              });
+
+              // 竞态检查
+              if (currentRequestId !== requestIdRef.current) return;
+
+              // 追加同城结果
+              finalRecommendations.push(...localResult.items);
+
+              // 更新排除列表，防止全局搜索重复拉取
+              localResult.items.forEach((item) => excludeIds.push(item.id));
             }
 
-            // console.log("🔍 准备发起全局搜索, localRes长度:", localRes.length);
-            // Req 2 (全局): 如果本地结果不足 RECOMMEND_LIMIT
-            let globalRes: HotelSearchItem[] = [];
-            if (localRes.length < RECOMMEND_LIMIT) {
-              const globalParams: SearchHotelsParams = {
-                city: undefined, // 明确为 undefined 以获取全局结果
-                checkInDate: params.checkInDate,
-                checkOutDate: params.checkOutDate,
-                keyword: undefined,
-                tags: undefined,
-                sort: "score_desc",
-                page: 1,
-                pageSize: RECOMMEND_LIMIT,
-              };
-              globalRes = await searchHotels(globalParams);
+            // Req 2 (全局): 如果同城结果不足 RECOMMEND_LIMIT
+            if (finalRecommendations.length < RECOMMEND_LIMIT) {
+              const needed = RECOMMEND_LIMIT - finalRecommendations.length;
+
+              const globalResult = await getRecommendedHotels({
+                limit: needed, // 仅获取缺失的数量
+                strategy: "global_popularity",
+                excludeIds, // 传递最新的排除列表
+              });
+
+              // 竞态检查
+              if (currentRequestId !== requestIdRef.current) return;
+
+              // 追加全局结果
+              finalRecommendations.push(...globalResult.items);
             }
 
-            // 再次竞态检查
-            if (currentRequestId !== requestIdRef.current) return;
-
-            // Algorithm: 混合推荐算法
-            // console.log("🔍 推荐源数据:", { localRes, globalRes });
-
-            // 1. 合并结果
-            const rawCandidates = [...localRes, ...globalRes];
-
-            // 2. 去重 (排除已在主列表中的酒店 + 自身去重)
-            const uniqueCandidates: HotelSearchItem[] = [];
-            const seenIds = new Set<number>();
-
-            // 将主列表 (res) 中的 ID 加入 Set
-            res.forEach((item) => seenIds.add(item.id));
-
-            rawCandidates.forEach((item) => {
-              if (!seenIds.has(item.id)) {
-                seenIds.add(item.id);
-                uniqueCandidates.push(item);
-              }
-            });
-
-            // 3. 打分 (Scoring)
-            const calcScore = (hotel: HotelSearchItem) => {
-              const base =
-                (hotel.star_rating || 0) * 20 + (hotel.review_score || 0) * 10;
-              // 注意: 数据库返回的是 region 字段
-              const isSameCity =
-                params.city && hotel.region
-                  ? hotel.region === params.city
-                  : false;
-              const geoBonus = isSameCity ? 1.5 : 1.0;
-              return base * geoBonus;
-            };
-
-            // 4. 排序
-            uniqueCandidates.sort((a, b) => calcScore(b) - calcScore(a));
-
-            // 5. 截断
-            const finalRecommendations = uniqueCandidates.slice(
-              0,
-              RECOMMEND_LIMIT,
-            );
-
+            // 更新状态
             setRecommendations(finalRecommendations);
           } catch (recError) {
             console.error("Recommendation fetch failed:", recError);
