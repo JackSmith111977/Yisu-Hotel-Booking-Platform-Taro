@@ -108,35 +108,91 @@ export const useSearchList = (
           // hasMore 在 mixed/empty 情况下通常为 false，因为已经进入推荐流程
           setHasMore(false);
 
-          // Step 3 (推荐请求) - 立即触发
-          // 构造 recommendParams
-          const recommendParams: SearchHotelsParams = {
-            city: params.city,
-            checkInDate: params.checkInDate,
-            checkOutDate: params.checkOutDate,
-            // 强制移除 keyword 和 tags
-            keyword: undefined,
-            tags: undefined,
-            // 设置排序为评分降序
-            sort: "score_desc",
-            // 推荐列表通常不需要很长，或者可以使用默认分页
-            page: 1,
-            pageSize: DEFAULT_PAGE_SIZE,
-          };
+          // Step 3 (推荐请求) - 升级后的混合推荐逻辑
+          const RECOMMEND_LIMIT = 10;
 
           try {
-            const recommendRes = await searchHotels(recommendParams);
+            // console.log("🔍 开始推荐流程, params:", params);
+
+            // Req 1 (同城): 仅当 params.city 存在时发起
+            let localRes: HotelSearchItem[] = [];
+            if (params.city) {
+              const localParams: SearchHotelsParams = {
+                city: params.city,
+                checkInDate: params.checkInDate,
+                checkOutDate: params.checkOutDate,
+                keyword: undefined,
+                tags: undefined,
+                sort: "score_desc",
+                page: 1,
+                pageSize: RECOMMEND_LIMIT,
+              };
+              localRes = await searchHotels(localParams);
+            }
+
+            // console.log("🔍 准备发起全局搜索, localRes长度:", localRes.length);
+            // Req 2 (全局): 如果本地结果不足 RECOMMEND_LIMIT
+            let globalRes: HotelSearchItem[] = [];
+            if (localRes.length < RECOMMEND_LIMIT) {
+              const globalParams: SearchHotelsParams = {
+                city: undefined, // 明确为 undefined 以获取全局结果
+                checkInDate: params.checkInDate,
+                checkOutDate: params.checkOutDate,
+                keyword: undefined,
+                tags: undefined,
+                sort: "score_desc",
+                page: 1,
+                pageSize: RECOMMEND_LIMIT,
+              };
+              globalRes = await searchHotels(globalParams);
+            }
 
             // 再次竞态检查
             if (currentRequestId !== requestIdRef.current) return;
 
-            // 去重 (Deduplication): 过滤掉已存在于 list 中的酒店
-            // list 在这里是 res (闭包中的变量)，或者直接用 res
-            const uniqueRes = recommendRes.filter(
-              (r) => !res.find((l) => l.id === r.id),
+            // Algorithm: 混合推荐算法
+            // console.log("🔍 推荐源数据:", { localRes, globalRes });
+
+            // 1. 合并结果
+            const rawCandidates = [...localRes, ...globalRes];
+
+            // 2. 去重 (排除已在主列表中的酒店 + 自身去重)
+            const uniqueCandidates: HotelSearchItem[] = [];
+            const seenIds = new Set<number>();
+
+            // 将主列表 (res) 中的 ID 加入 Set
+            res.forEach((item) => seenIds.add(item.id));
+
+            rawCandidates.forEach((item) => {
+              if (!seenIds.has(item.id)) {
+                seenIds.add(item.id);
+                uniqueCandidates.push(item);
+              }
+            });
+
+            // 3. 打分 (Scoring)
+            const calcScore = (hotel: HotelSearchItem) => {
+              const base =
+                (hotel.star_rating || 0) * 20 + (hotel.review_score || 0) * 10;
+              // 注意: 数据库返回的是 region 字段
+              const isSameCity =
+                params.city && hotel.region
+                  ? hotel.region === params.city
+                  : false;
+              const geoBonus = isSameCity ? 1.5 : 1.0;
+              return base * geoBonus;
+            };
+
+            // 4. 排序
+            uniqueCandidates.sort((a, b) => calcScore(b) - calcScore(a));
+
+            // 5. 截断
+            const finalRecommendations = uniqueCandidates.slice(
+              0,
+              RECOMMEND_LIMIT,
             );
 
-            setRecommendations(uniqueRes);
+            setRecommendations(finalRecommendations);
           } catch (recError) {
             console.error("Recommendation fetch failed:", recError);
             // 推荐失败不影响主流程，保持 loading false
