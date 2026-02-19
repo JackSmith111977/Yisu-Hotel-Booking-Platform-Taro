@@ -1,0 +1,38 @@
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: #f2f3f5;
+}
+
+.counter-btn {
+  color: #333;
+  font-size: 30px;
+  width: 40px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;  
+}
+
+.counter-btn:hover {
+  color: #000;
+}
+
+.counter-btn--disabled {
+  color: #c8c9cc;
+  cursor: not-allowed;
+}
+
+.counter-btn--disabled:hover {
+  color: #c8c9cc;
+}
+
+.counter-value {
+  font-size: 25px;
+  min-width: 30px;
+  text-align: center;
+}
