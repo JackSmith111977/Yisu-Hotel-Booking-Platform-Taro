@@ -5,12 +5,13 @@ import './index.scss'
 
 interface BottomBarProps {
   price?: number
+  visible?: boolean
   onViewRooms?: () => void
 }
 
-const BottomBar = ({ price = 0, onViewRooms }: BottomBarProps) => {
+const BottomBar = ({ price = 0, visible = true, onViewRooms }: BottomBarProps) => {
   return (
-    <View className='bottom-bar'>
+    <View className={`bottom-bar ${visible ? '' : 'bottom-bar-hidden'}`}>
       <View className='bottom-right'>
         <View className='bottom-price-content'>
           <Price
@@ -28,7 +29,8 @@ const BottomBar = ({ price = 0, onViewRooms }: BottomBarProps) => {
           <Text className='bottom-price-suffix'>起</Text>
         </View>
         <Button 
-          type='primary' size='small' className='bottom-btn' onClick={onViewRooms}
+          type='primary' size='small' className='bottom-btn' 
+          onClick={onViewRooms}
           style={{
             '--nutui-button-small-font-size':'12px',
             '--nutui-button-small-padding':'12px 10px'

@@ -11,12 +11,7 @@ $bg-white: #ffffff;
   position: sticky;
   z-index: 99;
   background: #fff;
-  // 当 StickyTopBar 出现时，动态下移
   transition: top 0.25s ease;
-
-  &.with-topbar {
-    top: 88px;
-  }
 }
 
 .booking-section {
