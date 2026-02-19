@@ -1,6 +1,6 @@
 import Taro, { useLoad, usePageScroll } from '@tarojs/taro'
 import { View } from '@tarojs/components'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { HotelType } from '../../../../types/hotel'
 import HotelSwiper from '../components/HotelSwiper'
 import HotelInfo from '../components/HotelInfo'
@@ -50,16 +50,38 @@ const HotelDetail = () => {
     })
   })
 
-  usePageScroll(({ scrollTop }) => {
-    setShowTopBar(scrollTop > 250)
-  })
-
   // 预处理数据
   const hotelImages = hotel ? [hotel.image, ...hotel.album] : [];
   const hotelAddress = `${JSON.parse(hotel?.region || '[]')?.filter((item: string) => item !== '市辖区').join('') || ''}${hotel?.address || ''}`;
-  // Hotelinfo sticky 位置计算
-  const menuBtn = Taro.getMenuButtonBoundingClientRect()
-  const stickyNavHeight = menuBtn.bottom + 10  
+  const stickyNavHeight = Taro.getMenuButtonBoundingClientRect().bottom + 10  // Hotelinfo sticky 位置
+
+  // 添加滚动方法并传给 BottomBar
+  const scrollToRoomList = () => {
+    const query = Taro.createSelectorQuery()
+    query.select('.room-list').boundingClientRect()
+    query.selectViewport().scrollOffset()
+    query.select('.booking-section-sticky').boundingClientRect()
+    query.exec((res) => {
+      const roomListRect = res[0]
+      const scroll = res[1]
+      const bookingRect = res[2]
+  
+      if (!roomListRect || !bookingRect) return
+  
+      const navHeight = stickyNavHeight
+      const bookingHeight = bookingRect.height
+      const totalOffset = navHeight + bookingHeight + 10
+  
+      Taro.pageScrollTo({
+        scrollTop: scroll.scrollTop + roomListRect.top - totalOffset,
+        duration: 300,
+      })
+    })
+  }
+
+  usePageScroll(({ scrollTop }) => {
+    setShowTopBar(scrollTop > 250)
+  })
 
   return (
     <View className='hotel-detail'>
@@ -79,7 +101,7 @@ const HotelDetail = () => {
 
       {/* 日期 & 入住信息 */}
       <View 
-        className={`booking-section-sticky ${showTopBar ? 'with-topbar' : ''}`}
+        className='booking-section-sticky'
         style={{
           top: showTopBar ? `${stickyNavHeight}px` : '0px',
         }}
@@ -97,7 +119,11 @@ const HotelDetail = () => {
       <RoomList hotelId={hotel?.id} onPriceReady={setLowestPrice} /> 
 
       {/* 底部操作栏 */}
-      <BottomBar price={lowestPrice} />
+      <BottomBar 
+        price={lowestPrice}
+        visible={!showTopBar}
+        onViewRooms={scrollToRoomList}
+      />
     </View>
   )
 }
