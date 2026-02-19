@@ -1,24 +1,9 @@
-import { useCallback, useState } from "react";
-import { SearchState } from "../../../types/home/types";
-import dayjs from "dayjs";
+import { useCallback } from "react";
 import Taro from "@tarojs/taro";
 import { navigateTo } from "@/utils/router";
 import { RoutePath } from "@/constants/route";
 import { reverseGeocoder } from "@/utils/map";
-
-/**
- * 获取当前日期
- * @description 获取当前日期的字符串表示，格式为 "YYYY-MM-DD"
- * @returns {string} 当前日期的字符串表示
- */
-const getToday = () => dayjs().format("YYYY-MM-DD");
-
-/**
- * 获取明天日期
- * @description 获取明天日期的字符串表示，格式为 "YYYY-MM-DD"
- * @returns {string} 明天日期的字符串表示
- */
-const getTomorrow = () => dayjs().add(1, "day").format("YYYY-MM-DD");
+import { useSearchStore } from "@/store/searchStore";
 
 /**
  * 首页逻辑钩子
@@ -26,14 +11,8 @@ const getTomorrow = () => dayjs().add(1, "day").format("YYYY-MM-DD");
  * @returns {object} 包含搜索状态、设置搜索状态、初始化定位、处理日期确认、处理搜索的方法
  */
 export const useHomeLogic = () => {
-  // 初始化搜索状态
-  const [searchState, setSearchState] = useState<SearchState>({
-    city: "定位中...",
-    keyword: "",
-    checkInDate: getToday(),
-    checkOutDate: getTomorrow(),
-    tags: [],
-  });
+  // 引入 useSearchStore
+  const { params, setParams, addHistory } = useSearchStore();
 
   /**
    * 初始化定位
@@ -51,32 +30,28 @@ export const useHomeLogic = () => {
       const cityName = await reverseGeocoder(res.latitude, res.longitude);
 
       if (cityName) {
-        setSearchState((prev) => ({
-          ...prev,
+        setParams({
           city: cityName,
-          latitude: res.latitude,
-          longitude: res.longitude,
-        }));
+        });
       } else {
-        setSearchState((prev) => ({
-          ...prev,
-          city: "定位失败",
-        }));
+        // 定位成功但解析失败，通常不覆盖默认值，或者设置为“定位失败”
+        // 这里保持 params 不变或仅提示
+        Taro.showToast({
+          title: "定位解析失败",
+          icon: "none",
+        });
       }
     } catch (e) {
       console.log("定位失败：", e);
-      setSearchState((prev) => ({
-        ...prev,
-        city: "请选择地区",
-      }));
-
+      // 定位失败不强制覆盖 city，保持默认值 '北京' 或用户已选值
+      // 仅提示用户
       Taro.showToast({
         title: "定位失败，请手动选择",
         icon: "none",
         duration: 2000,
       });
     }
-  }, []);
+  }, [setParams]);
 
   /**
    * 处理日期确认
@@ -85,11 +60,10 @@ export const useHomeLogic = () => {
    * @param {string} end - 退房日期的字符串表示，格式为 "YYYY-MM-DD"
    */
   const handleDateConfirm = (start: string, end: string) => {
-    setSearchState((prev) => ({
-      ...prev,
+    setParams({
       checkInDate: start,
       checkOutDate: end,
-    }));
+    });
   };
 
   /**
@@ -97,7 +71,7 @@ export const useHomeLogic = () => {
    * @description 当用户点击搜索按钮时，根据搜索状态进行搜索
    */
   const handleSearch = () => {
-    const { keyword, checkInDate, checkOutDate, city, tags } = searchState;
+    const { keyword, checkInDate, checkOutDate, city, tags } = params;
 
     // 基础校验
     if (!city || city === "定位中..." || city === "请选择城市") {
@@ -109,20 +83,27 @@ export const useHomeLogic = () => {
       return;
     }
 
-    // 跳转并携带参数
+    // 如果有 keyword，调用 addHistory(keyword)
+    if (keyword && keyword.trim()) {
+      addHistory(keyword);
+    }
+
+    // 跳转并携带参数 (将对象转为 URL query string)
+    // 注意：tags 数组需要转换为逗号分隔字符串
     navigateTo(RoutePath.SearchList, {
+      city,
       keyword,
       checkInDate,
       checkOutDate,
       tags: tags.join(","),
-      city,
     });
   };
 
   // 导出状态和方法
+  // 保持原有接口兼容，searchState 对应 params, setSearchState 对应 setParams
   return {
-    searchState,
-    setSearchState,
+    searchState: params,
+    setSearchState: setParams,
     initLocation,
     handleDateConfirm,
     handleSearch,

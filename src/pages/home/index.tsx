@@ -34,12 +34,8 @@ export default function Index() {
         <HomeHeader
           city={searchState.city}
           keyword={searchState.keyword}
-          onKeywordChange={(val) =>
-            setSearchState((prev) => ({ ...prev, keyword: val }))
-          }
-          onCitySelected={(city) =>
-            setSearchState((prev) => ({ ...prev, city: city }))
-          }
+          onKeywordChange={(val) => setSearchState({ keyword: val })}
+          onCitySelected={(city) => setSearchState({ city: city })}
         />
 
         <Divider
@@ -72,7 +68,7 @@ export default function Index() {
             const newTags = searchState.tags.includes(tagVal)
               ? searchState.tags.filter((t) => t !== tagVal)
               : [...searchState.tags, tagVal];
-            setSearchState((prev) => ({ ...prev, tags: newTags }));
+            setSearchState({ tags: newTags });
           }}
         />
 

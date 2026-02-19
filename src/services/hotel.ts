@@ -164,7 +164,7 @@ export const getRecommendedHotels = async (
 
   // 组装 RPC 参数
   const rpcParams = {
-    city: resolvedStrategy === "same_city_score" ? normalizeCity : null,
+    city: resolvedStrategy === "same_city_score" ? normalizedCity : null,
     keyword: null,
     sort: resolvedSort,
     page: 1,

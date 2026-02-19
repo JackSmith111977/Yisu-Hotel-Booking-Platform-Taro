@@ -65,3 +65,29 @@ export interface HotelSearchItem extends HotelType {
  * @description 用于标识推荐来源与排序逻辑
  */
 export type RecommendationStrategy = "same_city_score" | "global_popularity";
+
+/**
+ * 推荐酒店请求参数
+ * @description 获取推荐酒店列表时的请求参数
+ * @property {string} city - 城市名称（可选），若提供则优先按同城推荐
+ * @property {number[]} excludeIds - 需要排除的酒店 ID 列表（通常排除已展示的搜索结果）
+ * @property {number} limit - 返回数量限制，默认 5
+ * @property {RecommendationStrategy} strategy - 指定推荐策略（可选），若不传则自动判断
+ */
+export interface RecommendedHotelsParams {
+  city?: string;
+  excludeIds?: number[];
+  limit?: number;
+  strategy?: RecommendationStrategy;
+}
+
+/**
+ * 推荐酒店返回结果
+ * @description 包含使用的策略和酒店列表
+ * @property {RecommendationStrategy} strategy - 实际使用的推荐策略
+ * @property {HotelSearchItem[]} items - 推荐的酒店列表
+ */
+export interface RecommendedHotelsResult {
+  strategy: RecommendationStrategy;
+  items: HotelSearchItem[];
+}
