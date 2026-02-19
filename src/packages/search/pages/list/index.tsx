@@ -45,7 +45,7 @@ export default function SearchList() {
 
     return {
       city: params.city,
-      keyword: params.keyword,
+      keyword: params.keyword ? decodeURIComponent(params.keyword) : undefined,
       checkInDate: params.checkInDate,
       checkOutDate: params.checkOutDate,
       tags: parsedTags,
@@ -73,7 +73,7 @@ export default function SearchList() {
     <View className="search-list-page">
       {/* 顶部搜索栏 */}
       <SearchHeader
-        keyword={params.keyword || ""}
+        keyword={searchParams.keyword || ""}
         onSearch={(val) => console.log("New search:", val)}
       />
 

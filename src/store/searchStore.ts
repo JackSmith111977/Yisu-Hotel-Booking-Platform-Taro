@@ -124,6 +124,8 @@ export const useSearchStore = create<SearchStoreState>()(
     {
       name: "hotel-search-storage", // 持久化存储的唯一 key
       storage: createJSONStorage(() => taroStorage), // 使用自定义的 Taro 存储适配器
+      // ✨ 新增配置：只持久化 history 字段
+      partialize: (state) => ({ history: state.history }),
     },
   ),
 );
