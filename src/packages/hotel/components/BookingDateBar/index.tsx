@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
+import { callSupabase } from "@/utils/supabase";
 import {
   Calendar,
   Popup,
@@ -7,8 +8,9 @@ import {
   Divider,
   Button,
 } from '@nutui/nutui-react-taro'
-import RoomList from '../RoomList'
 import './index.scss'
+import Counter from '../Counter'
+
 
 /* ========== 工具函数 ========== */
 const formatDate = (d: Date) => `${d.getMonth() + 1}月${d.getDate()}日`
@@ -72,11 +74,11 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
   const nights = useMemo(() => diffDays(startDate, endDate), [startDate, endDate])
 
   const calendarStart = useMemo(() => toStr(new Date()), [])
-  const calendarEnd = useMemo(() => {
+  const [calendarEnd, setCalendarEnd] = useState<string>(() => {
     const d = new Date()
-    d.setDate(d.getDate() + 90)
+    d.setDate(d.getDate() + 30)   // 默认显示三十天
     return toStr(d)
-  }, [])
+  })
   const calendarDefault = useMemo(() => {
     return [toStr(startDate), toStr(endDate)];
   }, [startDate, endDate])
@@ -105,7 +107,21 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
     setPopupVisible(false)
   }, [tempRoomGuest, onRoomGuestChange])
 
-  /* ---- 渲染 ---- */
+  useEffect(() => {
+    const fetchMaxDate = async () => {
+      const res = await callSupabase({
+        action: 'rpc',
+        rpcName: 'get_max_availability_date',
+      })
+  
+      if (!res.error && res.data) {
+        setCalendarEnd(res.data)
+      }
+    }
+  
+    fetchMaxDate()
+  }, [])
+
   return (
     <View className='hotel-search-bar'>
       <View className='search-row'>
@@ -182,9 +198,17 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
           {/* 间数 */}
           <View className='field-row'>
             <Text className='field-label'>间数</Text>
-            <InputNumber
+            <Counter
               value={tempRoomGuest.rooms}
               min={1}
+              max={10}
+              onChange={(v) =>
+                setTempRoomGuest((p) => ({ ...p, rooms: Number(v) }))
+              }
+            />
+            {/* <InputNumber
+              value={tempRoomGuest.rooms}
+              min={2}
               max={10}
               onChange={(v) =>
                 setTempRoomGuest((p) => ({ ...p, rooms: Number(v) }))
@@ -192,9 +216,11 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
               style={{
                 '--nutui-inputnumber-input-font-size':'15px',
                 '--nutui-inputnumber-input-margin':'10px',
-                '--nutui-inputnumber-button-width': '18px'
+                '--nutui-inputnumber-button-width': '18px',
+                '--nutui-inputnumber-icon-color': '#0066FF',
+                '--nutui-inputnumber-disabled-color': '#c8c9cc',
               } as React.CSSProperties}
-            />
+            /> */}
           </View>
 
           <Divider style={{ margin: 0, padding: '0 32px' }} />
@@ -202,7 +228,15 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
           {/* 成人数 */}
           <View className='field-row'>
             <Text className='field-label'>成人数</Text>
-            <InputNumber
+            <Counter
+              value={tempRoomGuest.adults}
+              min={1}
+              max={20}
+              onChange={(v) =>
+                setTempRoomGuest((p) => ({ ...p, adults: Number(v) }))
+              }
+            />
+            {/* <InputNumber
               value={tempRoomGuest.adults}
               min={1}
               max={20}
@@ -214,7 +248,7 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
                 '--nutui-inputnumber-input-margin':'10px',
                 '--nutui-inputnumber-button-width': '18px'
               } as React.CSSProperties}
-            />
+            /> */}
           </View>
 
           <Divider style={{ margin: 0, padding: '0 32px' }} />
@@ -225,7 +259,15 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
               <Text className='field-label'>儿童数</Text>
               <Text className='field-sub'>0-17岁</Text>
             </View>
-            <InputNumber
+            <Counter
+              value={tempRoomGuest.children}
+              min={0}
+              max={20}
+              onChange={(v) =>
+                setTempRoomGuest((p) => ({ ...p, children: Number(v) }))
+              }
+            />
+            {/* <InputNumber
               value={tempRoomGuest.children}
               min={0}
               max={10}
@@ -237,7 +279,7 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
                 '--nutui-inputnumber-input-margin':'10px',
                 '--nutui-inputnumber-button-width': '18px'
               } as React.CSSProperties}
-            />
+            /> */}
           </View>
 
           {/* 完成 */}

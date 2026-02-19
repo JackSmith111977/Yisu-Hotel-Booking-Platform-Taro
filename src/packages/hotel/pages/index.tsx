@@ -22,6 +22,9 @@ interface RoomGuest {
   children: number
 }
 
+const toStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
 const HotelDetail = () => {
   const [hotel, setHotel] = useState<HotelType>()
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -116,7 +119,12 @@ const HotelDetail = () => {
 
       {/* 房型列表 */}
       {/* dateRange={dateRange} roomGuest={roomGuest} */}
-      <RoomList hotelId={hotel?.id} onPriceReady={setLowestPrice} /> 
+      <RoomList 
+        hotelId={hotel?.id} 
+        checkInDate={toStr(dateRange.start)}
+        checkOutDate={toStr(dateRange.end)}
+        onPriceReady={setLowestPrice} 
+      />
 
       {/* 底部操作栏 */}
       <BottomBar 
