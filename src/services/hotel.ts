@@ -21,6 +21,7 @@ export interface SearchHotelsParams {
   keyword?: string;
   checkInDate?: string; // 预留，暂不通过 hotels 表过滤
   checkOutDate?: string; // 预留
+  tags?: string[];
   sort?: HotelSearchSort;
   page?: number;
   pageSize?: number;
@@ -89,6 +90,7 @@ export const searchHotels = async (
   const {
     city,
     keyword,
+    tags,
     sort = "recommended",
     page = 1,
     pageSize = 10,
@@ -108,6 +110,7 @@ export const searchHotels = async (
   const rpcParams = {
     city: normalizedCity,
     keyword: normalizedKeyword,
+    tags: tags && tags.length > 0 ? tags : null, // 传递数组或 null
     sort,
     page: safePage,
     page_size: safePageSize,

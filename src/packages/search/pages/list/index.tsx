@@ -1,9 +1,15 @@
 import { useRouteParams } from "@/utils/router";
 import { View, Text, ScrollView } from "@tarojs/components";
-import { useEffect, useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { searchHotels, SearchHotelsParams } from "@/services/hotel";
 import Taro from "@tarojs/taro";
-import { HotelType } from "@/types/home/search";
+import { HotelSearchItem, HotelSearchSort } from "@/types/home/search";
+import HotelListItem from "@/components/list/HotelListItem";
+import SkeletonLoader from "../../components/SkeletonLoader";
+import SearchHeader from "../../components/SearchHeader";
+import FilterSortBar from "../../components/FilterSortBar";
+import { usePagination } from "@/hooks/usePagination";
+import "./index.scss";
 
 interface PageParams {
   city?: string;
@@ -15,83 +21,115 @@ interface PageParams {
 
 export default function SearchList() {
   const params = useRouteParams<PageParams>();
-  const [hotels, setHotels] = useState<HotelType[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [sort, setSort] = useState<HotelSearchSort>("recommended");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+  // 跳转到酒店详情
+  const handleHotelClick = useCallback((hotelId: number) => {
+    Taro.navigateTo({
+      url: `/packages/hotel/pages/index?id=${hotelId}`,
+    });
+  }, []);
+
+  // 构造搜索参数
+  const searchParams = useMemo(() => {
+    // 解析 tags: 字符串 "tag1,tag2" -> 数组 ["tag1", "tag2"]
+    let parsedTags: string[] | undefined;
+    if (params.tags) {
       try {
-        const searchParams: SearchHotelsParams = {
-          city: params.city,
-          keyword: params.keyword,
-          checkInDate: params.checkInDate,
-          checkOutDate: params.checkOutDate,
-          page: 1,
-          pageSize: 20,
-        };
-
-        console.log("Searching with params:", searchParams);
-        const res = await searchHotels(searchParams);
-        setHotels(res);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "搜索失败");
-        Taro.showToast({ title: "搜索失败", icon: "none" });
-      } finally {
-        setLoading(false);
+        const decodedTags = decodeURIComponent(params.tags);
+        parsedTags = decodedTags.split(",").filter(Boolean);
+      } catch (e) {
+        console.warn("Tags parsing failed:", e);
       }
-    };
+    }
 
-    fetchData();
-  }, [params.city, params.keyword, params.tags]);
+    return {
+      city: params.city,
+      keyword: params.keyword,
+      checkInDate: params.checkInDate,
+      checkOutDate: params.checkOutDate,
+      tags: parsedTags,
+      sort,
+    };
+  }, [params, sort]);
+
+  // 使用分页 Hook
+  const {
+    list: hotels,
+    loading,
+    error,
+    hasMore,
+    loadMore,
+  } = usePagination<
+    HotelSearchItem,
+    Omit<SearchHotelsParams, "page" | "pageSize">
+  >({
+    fetcher: searchHotels,
+    params: searchParams,
+    pageSize: 20,
+  });
 
   return (
-    <ScrollView scrollY style={{ height: "100vh" }}>
-      <View style={{ padding: "16px" }}>
-        <Text
-          style={{ display: "block", marginBottom: "10px", fontWeight: "bold" }}
-        >
-          搜索参数: {JSON.stringify(params)}
-        </Text>
+    <View className="search-list-page">
+      {/* 顶部搜索栏 */}
+      <SearchHeader
+        keyword={params.keyword || ""}
+        onSearch={(val) => console.log("New search:", val)}
+      />
 
-        {loading && (
-          <View style={{ padding: "20px", textAlign: "center" }}>
-            加载中...
-          </View>
-        )}
+      {/* 筛选排序栏 */}
+      <FilterSortBar currentSort={sort} onSortChange={setSort} />
 
-        {error && (
-          <View style={{ padding: "20px", color: "red" }}>{error}</View>
-        )}
-
-        {!loading && !error && (
-          <View>
-            <Text
-              style={{
-                fontWeight: "bold",
-                display: "block",
-                marginBottom: "10px",
-              }}
-            >
-              找到 {hotels.length} 家酒店:
-            </Text>
-            <View
-              style={{
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-all",
-                fontSize: "12px",
-                background: "#f5f5f5",
-                padding: "10px",
-                borderRadius: "4px",
-              }}
-            >
-              {JSON.stringify(hotels, null, 2)}
+      <ScrollView
+        scrollY
+        className="search-scroll-view"
+        onScrollToLower={loadMore}
+        lowerThreshold={100}
+      >
+        <View className="list-container">
+          {/* 错误提示 */}
+          {error && (
+            <View className="error-container">
+              <Text>{error}</Text>
             </View>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+          )}
+
+          {/* 酒店列表 */}
+          {hotels.map((hotel) => (
+            <HotelListItem
+              key={hotel.id}
+              hotel={hotel}
+              onClick={handleHotelClick}
+            />
+          ))}
+
+          {/* 加载更多/骨架屏 */}
+          {loading && (
+            <View className="loading-more">
+              {hotels.length === 0 ? (
+                <SkeletonLoader count={6} />
+              ) : (
+                <Text className="loading-text">加载中...</Text>
+              )}
+            </View>
+          )}
+
+          {/* 空状态 / 到底提示 */}
+          {!loading &&
+            !error &&
+            (hotels.length === 0 ? (
+              <View className="empty-container">
+                <Text>未找到相关酒店</Text>
+              </View>
+            ) : (
+              !hasMore && (
+                <View className="no-more-container">
+                  <Text>没有更多了</Text>
+                </View>
+              )
+            ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
