@@ -1,4 +1,10 @@
-import { HotelSearchItem, HotelSearchSort } from "@/types/home/search";
+import {
+  HotelSearchItem,
+  HotelSearchSort,
+  RecommendationStrategy,
+  RecommendedHotelsParams,
+  RecommendedHotelsResult,
+} from "@/types/home/search";
 import { callSupabase } from "@/utils/supabase";
 
 export interface SearchParams {
@@ -97,17 +103,7 @@ export const searchHotels = async (
   const normalizedCity = normalizeCity(city);
   const normalizedKeyword = normalizeKeyword(keyword);
 
-  // TODO: 后端 SQL / RPC 实现
-  // 伪代码示意:
-  // SELECT h.*, MIN(r.price) AS min_price, AVG(reviews.score) AS review_score
-  // FROM hotels h
-  // LEFT JOIN room_types r ON r.hotel_id = h.id
-  // LEFT JOIN reviews ON reviews.hotel_id = h.id
-  // WHERE (region ILIKE %city%) AND (name/address matches keyword)
-  // GROUP BY h.id
-  // ORDER BY (sort strategy)
-  // LIMIT pageSize OFFSET (page-1)*pageSize
-
+  // TODO: 学习 Supabase RPC
   // 构建 RPC 参数
   const rpcParams = {
     city: normalizedCity,
@@ -134,4 +130,67 @@ export const searchHotels = async (
   }
 
   return data as HotelSearchItem[];
+};
+
+/**
+ * 获取推荐酒店列表
+ * @description 基于城市或全局热门策略返回推荐酒店列表
+ * @param {RecommendedHotelsParams} params - 推荐请求参数
+ * @returns {Promise<RecommendedHotelsResult>} 推荐酒店结果
+ */
+export const getRecommendedHotels = async (
+  params: RecommendedHotelsParams,
+): Promise<RecommendedHotelsResult> => {
+  // 解构并设置默认值
+  const { city, excludeIds = [], limit = 5, strategy } = params;
+
+  // 安全处理 limit 参数
+  // isFinite 检查是否为有限数字
+  const safeLimit = Number.isFinite(limit) && limit > 0 ? limit : 5;
+
+  // 空值合并运算符 ?? ，当 strategy 为 undefined 或 null 时，才取右侧的值
+  const resolvedStrategy: RecommendationStrategy =
+    strategy ?? (city ? "same_city_score" : "global_popularity");
+
+  // 根据策略选择排序方式
+  const resolvedSort: HotelSearchSort =
+    resolvedStrategy === "same_city_score" ? "star_desc" : "recommended";
+
+  // 规范化城市
+  const normalizedCity = normalizeCity(city);
+
+  // 扩大 RPC 拉取数量，预留排除过滤后的补足空间
+  const pageSize = Math.max(safeLimit + excludeIds.length, safeLimit);
+
+  // 组装 RPC 参数
+  const rpcParams = {
+    city: resolvedStrategy === "same_city_score" ? normalizeCity : null,
+    keyword: null,
+    sort: resolvedSort,
+    page: 1,
+    page_size: pageSize,
+  };
+
+  // 调用 RPC
+  const { data, error } = await callSupabase({
+    action: "rpc",
+    rpcName: "search_hotels_with_min_price",
+    params: rpcParams,
+  });
+
+  // 防御性处理
+  if (error || !Array.isArray(data)) {
+    return { strategy: resolvedStrategy, items: [] };
+  }
+
+  // 过滤已经展示过的酒店
+  const filtered = excludeIds.length
+    ? data.filter((item: HotelSearchItem) => !excludeIds.includes(item.id))
+    : data;
+
+  // 截取需要的数量返回
+  return {
+    strategy: resolvedStrategy,
+    items: filtered.slice(0, safeLimit) as HotelSearchItem[],
+  };
 };

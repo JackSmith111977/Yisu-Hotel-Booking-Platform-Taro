@@ -59,3 +59,9 @@ export interface HotelSearchItem extends HotelType {
   tags: string[] | null;
   is_sold_out: boolean | null;
 }
+
+/**
+ * 推荐策略枚举
+ * @description 用于标识推荐来源与排序逻辑
+ */
+export type RecommendationStrategy = "same_city_score" | "global_popularity";
