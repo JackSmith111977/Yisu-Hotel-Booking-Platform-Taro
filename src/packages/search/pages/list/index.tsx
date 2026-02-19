@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { searchHotels, SearchHotelsParams } from "@/services/hotel";
 import Taro from "@tarojs/taro";
 import { HotelSearchItem, HotelSearchSort } from "@/types/home/search";
-import HotelListItem from "@/components/list/HotelListItem";
+import HotelListItem from "../../components/HotelListItem";
 import SkeletonLoader from "../../components/SkeletonLoader";
 import SearchHeader from "../../components/SearchHeader";
 import FilterSortBar from "../../components/FilterSortBar";

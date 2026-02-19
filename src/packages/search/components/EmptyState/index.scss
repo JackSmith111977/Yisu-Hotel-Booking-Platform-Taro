@@ -1,0 +1,28 @@
+@import "@/app.scss";
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px; // 调整为适配 rpx
+
+  .empty-image {
+    width: 240px; // 原 120px -> 240rpx
+    height: 240px;
+    margin-bottom: 32px;
+  }
+
+  .empty-title {
+    font-size: 32px; // 原 16px -> 32rpx
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+
+  .empty-desc {
+    font-size: 28px; // 原 14px -> 28rpx
+    color: #999;
+    text-align: center;
+  }
+}

@@ -106,14 +106,14 @@ export const searchHotels = async (
   const normalizedKeyword = normalizeKeyword(keyword);
 
   // TODO: 学习 Supabase RPC
-  // 构建 RPC 参数
+  // 构建 RPC 参数 (注意 key 的变化)
   const rpcParams = {
-    city: normalizedCity,
-    keyword: normalizedKeyword,
-    tags: tags && tags.length > 0 ? tags : null, // 传递数组或 null
-    sort,
-    page: safePage,
-    page_size: safePageSize,
+    p_city: normalizedCity,
+    p_keyword: normalizedKeyword,
+    p_tags: tags && tags.length > 0 ? tags : null,
+    p_sort: sort,
+    p_page: safePage,
+    p_page_size: safePageSize,
   };
 
   // 调用 Supabase RPC
@@ -165,13 +165,14 @@ export const getRecommendedHotels = async (
   // 扩大 RPC 拉取数量，预留排除过滤后的补足空间
   const pageSize = Math.max(safeLimit + excludeIds.length, safeLimit);
 
-  // 组装 RPC 参数
+  // 组装 RPC 参数 (注意 key 的变化)
   const rpcParams = {
-    city: resolvedStrategy === "same_city_score" ? normalizedCity : null,
-    keyword: null,
-    sort: resolvedSort,
-    page: 1,
-    page_size: pageSize,
+    p_city: resolvedStrategy === "same_city_score" ? normalizedCity : null,
+    p_keyword: null,
+    p_sort: resolvedSort,
+    p_page: 1,
+    p_page_size: pageSize,
+    p_tags: null, // 显式传递 null，或者因为有默认值也可以不传，但建议显式传递保持一致
   };
 
   // 调用 RPC
