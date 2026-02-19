@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import Taro from "@tarojs/taro";
 import dayjs from "dayjs";
+import { HotelSearchSort } from "@/types/home/search";
 
 /**
  * 搜索参数接口定义
@@ -18,6 +19,8 @@ export interface SearchParams {
   keyword: string;
   /** 筛选标签 */
   tags: string[];
+  /** 排序方式 */
+  sort?: HotelSearchSort;
 }
 
 /**
@@ -96,35 +99,35 @@ export const useSearchStore = create<SearchStoreState>()(
         checkOutDate: dayjs().add(1, "day").format("YYYY-MM-DD"),
         keyword: "",
         tags: [],
+        sort: "recommended",
       },
       history: [],
 
-      // Actions 实现
-
-      // 深度合并更新参数
+      // 更新参数 Action
       setParams: (partialParams) =>
         set((state) => ({
           params: { ...state.params, ...partialParams },
         })),
 
-      // 添加历史记录：头部插入 + 去重 + 限制长度
+      // 添加历史记录 Action
       addHistory: (keyword) =>
         set((state) => {
           if (!keyword || !keyword.trim()) return state;
-          // 过滤掉已存在的相同关键词，确保唯一性
-          const filteredHistory = state.history.filter((k) => k !== keyword);
-          // 插入新关键词到头部，并截取前 10 条
-          const newHistory = [keyword, ...filteredHistory].slice(0, 10);
+          const newHistory = [
+            keyword,
+            ...state.history.filter((k) => k !== keyword),
+          ].slice(0, 10);
           return { history: newHistory };
         }),
 
-      // 清空历史记录
+      // 清空历史记录 Action
       clearHistory: () => set({ history: [] }),
     }),
     {
-      name: "hotel-search-storage", // 持久化存储的唯一 key
-      storage: createJSONStorage(() => taroStorage), // 使用自定义的 Taro 存储适配器
-      // ✨ 新增配置：只持久化 history 字段
+      name: "search-storage", // 存储 key
+      storage: createJSONStorage(() => taroStorage), // 自定义存储适配器
+      // 可选：只持久化 history，params 每次重置？
+      // 根据需求，这里持久化所有状态，以便用户返回时保持状态
       partialize: (state) => ({ history: state.history }),
     },
   ),

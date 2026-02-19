@@ -1,87 +1,111 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Taro from "@tarojs/taro";
 import { useSearchStore } from "@/store/searchStore";
 import { SearchUrlParams } from "@/types/search";
 
 /**
- * 搜索初始化 Hook
- * @description 从 URL 参数中恢复搜索状态到全局 Store，确保页面刷新或分享进入时状态正确
- * @returns {boolean} initialized - 是否已完成参数同步
+ * useSearchInitialization Hook
+ * @description 初始化搜索状态 Hook
+ * 主要功能：从路由参数 (URL Query) 中解析搜索条件，并同步到全局 Store
+ *
+ * @returns {boolean} isInitialized - 是否完成初始化
  */
 export const useSearchInitialization = (): boolean => {
+  // --- 依赖引入 ---
   const router = Taro.useRouter();
-  const params = router.params as SearchUrlParams;
+  // 使用 Zustand 的 selector 获取 setParams，避免不必要的重渲染
   const setParams = useSearchStore((state) => state.setParams);
-  const [initialized, setInitialized] = useState(false);
 
+  // --- 状态定义 ---
+  // 用于向组件报告初始化是否完成
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
+  // 使用 useRef 记录初始化状态，防止 React StrictMode 下重复执行 (防御性编程)
+  const hasExecutedRef = useRef(false);
+
+  // --- 核心逻辑 ---
   useEffect(() => {
-    // 标记是否已处理过，避免重复执行
-    // 在 React 18+ 的 StrictMode 下，useEffect 会执行两次，这里依赖 params 变化是安全的
+    // 避免重复执行初始化逻辑
+    if (hasExecutedRef.current) return;
+    hasExecutedRef.current = true;
 
-    // 确保 params 已就绪（Taro 某些场景下 router.params 可能是空对象）
-    if (!params) {
-      setInitialized(true);
-      return;
-    }
+    const params = router.params as SearchUrlParams;
 
-    // 检查是否有有效参数需要同步
-    // 只要有任何一个核心参数存在，就视为需要同步
-    const hasValidParams =
-      params.city ||
-      params.checkInDate ||
-      params.checkOutDate ||
-      params.keyword ||
-      params.tags;
+    console.log("[useSearchInitialization] Router Params:", params);
 
-    if (hasValidParams) {
-      // 解析 tags: 字符串 "tag1,tag2" -> 数组 ["tag1", "tag2"]
-      let parsedTags: string[] = [];
+    // Step 1: 判断有效性
+    // 检查是否存在关键搜索字段，只有当 URL 携带了有效参数时才覆盖 Store
+    // 这里的关键字段包括: city, keyword, checkInDate
+    const hasKeyFields =
+      Boolean(params.city) ||
+      Boolean(params.keyword) ||
+      Boolean(params.checkInDate);
+
+    if (hasKeyFields) {
+      // Step 2: 构造更新对象 & 类型转换
+      // 定义一个临时对象用于收集更新
+      const updates: any = {};
+
+      // 1. City: URL 解码
+      if (params.city) {
+        updates.city = decodeURIComponent(params.city);
+      }
+
+      // 2. Keyword: URL 解码
+      if (params.keyword) {
+        updates.keyword = decodeURIComponent(params.keyword);
+      }
+
+      // 3. Dates: 直接赋值 (假设 URL 格式为 YYYY-MM-DD)
+      if (params.checkInDate) {
+        updates.checkInDate = params.checkInDate;
+      }
+      if (params.checkOutDate) {
+        updates.checkOutDate = params.checkOutDate;
+      }
+
+      // 4. Tags: 特殊处理 (解码 + 分割字符串)
       if (params.tags) {
         try {
-          // 处理可能存在的编码问题，如 tags="亲子%2C海景" 或 tags="亲子,海景"
+          // 先解码，处理可能存在的 URL 编码字符
           const decodedTags = decodeURIComponent(params.tags);
-          parsedTags = decodedTags.split(",").filter(Boolean);
-        } catch (e) {
-          console.warn("[useSearchInitialization] tags parse error:", e);
-          // 降级处理
-          if (params.tags) {
-            parsedTags = params.tags.split(",").filter(Boolean);
+          // 按逗号分割，并过滤空字符串
+          updates.tags = decodedTags.split(",").filter(Boolean);
+        } catch (error) {
+          console.warn("[useSearchInitialization] Tags parsing failed:", error);
+
+          // 容错处理：确保 params.tags 是字符串再处理
+          // 防御性编程：避免 catch 块中因类型问题导致二次崩溃
+          if (typeof params.tags === "string") {
+            updates.tags = params.tags.split(",").filter(Boolean);
+          } else {
+            console.error(
+              "[useSearchInitialization] Invalid tags format:",
+              params.tags,
+            );
+            updates.tags = []; // 降级为空数组
           }
         }
       }
 
-      // 构造更新对象，过滤掉 undefined 值
-      const updates = {
-        ...(params.city && { city: decodeURIComponent(params.city) }),
-        ...(params.checkInDate && { checkInDate: params.checkInDate }),
-        ...(params.checkOutDate && { checkOutDate: params.checkOutDate }),
-        ...(params.keyword && { keyword: decodeURIComponent(params.keyword) }),
-        ...(parsedTags.length > 0 && { tags: parsedTags }),
-      };
-
-      console.log(
-        "[useSearchInitialization] Syncing URL params to Store:",
-        updates,
-      );
-
-      // 同步到 Store
+      // Step 3: 同步到 Store
+      console.log("[useSearchInitialization] Syncing to store:", updates);
       setParams(updates);
     } else {
       console.log(
-        "[useSearchInitialization] No URL params found, using existing Store state.",
+        "[useSearchInitialization] No valid params found, keeping store state.",
       );
     }
 
-    // 标记初始化完成
-    setInitialized(true);
+    // Step 4: 信号 - 设置初始化完成
+    setIsInitialized(true);
   }, [
-    params.city,
-    params.checkInDate,
-    params.checkOutDate,
-    params.keyword,
-    params.tags,
+    // 依赖项解释：
+    // 1. router.params: 确保获取到路由参数后执行
+    // 2. setParams: Store 的 action，通常是稳定的
+    router.params,
     setParams,
   ]);
 
-  return initialized;
+  return isInitialized;
 };
