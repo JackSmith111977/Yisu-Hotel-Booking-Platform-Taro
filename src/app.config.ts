@@ -11,7 +11,10 @@ export default defineAppConfig({
     // 酒店分包
     {
       root: "packages/hotel",
-      pages: ["pages/index"],
+      pages: [
+        "pages/index",
+        "pages/order/index"
+      ],
     },
     // 认证分包
     {

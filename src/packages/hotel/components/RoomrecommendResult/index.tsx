@@ -3,15 +3,21 @@ import { Tag, Button } from '@nutui/nutui-react-taro';
 import Taro from '@tarojs/taro';
 import type { RecommendResult } from '@/utils/recommendRooms';
 import { BedInfo } from '@/types/detailPage/RoomList';
+import { useBookingStore } from '@/store/bookingStore'
 import './index.scss';
 
 interface Props {
   result: RecommendResult;
   nights: number;
+  adultCount: number;
+  childCount: number;
   onBook?: (roomTypeId: number) => void;
 }
 
-export function RoomRecommendResult({ result, nights, onBook }: Props) {
+export function RoomRecommendResult({ result, nights, adultCount, childCount, onBook }: Props) {
+  const { setItems, totalPrice } = useBookingStore()
+  const totalRooms = result.rooms.reduce((s, r) => s + r.count, 0);
+
   const formatBeds = (beds: BedInfo[]) => {
     if (!beds || beds.length === 0) return '';
     return beds.map((bed) => `${bed.count}张${bed.type}`).join(' ');
@@ -22,13 +28,41 @@ export function RoomRecommendResult({ result, nights, onBook }: Props) {
       current: images[index],
       urls: images,
     });
-  };
+  };  
 
-  const totalRooms = result.rooms.reduce((s, r) => s + r.count, 0);
-
+  // 订购逻辑
   const handleBookAll = () => {
-    result.rooms.forEach(({ room }) => onBook?.(room.id));
-  };
+    // 把推荐结果写入 store
+    const newItems = result.rooms.map(({ room, count }) => ({
+      roomTypeId: room.id,
+      roomName: room.name,
+      price: room.price,
+      count,
+      images: (room as any).images ?? [],
+      adultCount,
+      childCount,
+    }))
+    setItems(newItems)
+  
+    const store = useBookingStore.getState()
+    const orderData = {
+      hotelId: store.hotelId,
+      checkInDate: store.checkInDate,
+      checkOutDate: store.checkOutDate,
+      nights: store.nights,
+      items: newItems,
+      totalPrice: result.total_price,
+    }
+  
+    console.log('[BookingOrder] RoomRecommendResult 传递给订单页的参数:', orderData)
+  
+    Taro.navigateTo({
+      url: '/packages/hotel/pages/order/index',
+      success: (res) => {
+        res.eventChannel.emit('acceptOrderData', { data: orderData })
+      },
+    })
+  }
 
   return (
     <View className='recommend-wrapper'>

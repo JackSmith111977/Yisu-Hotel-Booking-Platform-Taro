@@ -124,7 +124,12 @@ const HotelDetail = () => {
       </View>
       
       {recommendResult && (
-        <RoomRecommendResult result={recommendResult} nights={dateRange.nights} />
+        <RoomRecommendResult 
+          result={recommendResult} 
+          nights={dateRange.nights}
+          adultCount={roomGuest.adults}
+          childCount={roomGuest.children}
+        />
       )}
 
       {/* 房型列表 */}
@@ -141,6 +146,9 @@ const HotelDetail = () => {
         hotelId={hotel?.id} 
         checkInDate={toStr(dateRange.start)}
         checkOutDate={toStr(dateRange.end)}
+        nights={dateRange.nights}
+        adultCount={roomGuest.adults}
+        childCount={roomGuest.children}
         onPriceReady={setLowestPrice} 
       />
 
