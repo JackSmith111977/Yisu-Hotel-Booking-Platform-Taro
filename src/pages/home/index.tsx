@@ -23,14 +23,14 @@ export default function Index() {
   }, [initLocation]);
 
   return (
-    <View className="home-page">
+    <View className='home-page'>
       {/* Banner 区域 */}
-      <View className="banner-area">
-        <View className="banner-title">易宿-酒店预订平台</View>
+      <View className='banner-area'>
+        <View className='banner-title'>易宿-酒店预订平台</View>
       </View>
 
       {/* 搜索卡片 */}
-      <View className="search-card">
+      <View className='search-card'>
         <HomeHeader
           city={searchState.city}
           keyword={searchState.keyword}
@@ -74,8 +74,8 @@ export default function Index() {
 
         {/* 搜索按钮 */}
         <Button
-          className="search-btn"
-          type="primary"
+          className='search-btn'
+          type='primary'
           block
           onClick={handleSearch}
           style={{

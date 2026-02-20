@@ -1,6 +1,10 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import Taro from '@tarojs/taro';
 import { View, Text } from '@tarojs/components'
 import { callSupabase } from "@/utils/supabase";
+import { RoomGuest } from '@/types/detailPage/RoomList';
+import { recommendRooms, RecommendResult } from '@/utils/recommendRooms'
+
 import {
   Calendar,
   Popup,
@@ -8,6 +12,7 @@ import {
   Divider,
   Button,
 } from '@nutui/nutui-react-taro'
+import { RoomRecommendResult } from '../RoomrecommendResult';
 import './index.scss'
 import Counter from '../Counter'
 
@@ -34,20 +39,17 @@ const diffDays = (s: Date, e: Date) =>
 const toStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-/* ========== 类型 ========== */
-interface RoomGuest {
-  rooms: number
-  adults: number
-  children: number
-}
-
-interface BookingDateBarProps {
-  onDateChange?: (start: Date, end: Date, nights: number) => void
-  onRoomGuestChange?: (data: RoomGuest) => void
-}
+const MAX_PER_ROOM = 3;   // 预设每间最大人数
 
 /* ========== 主组件 ========== */
-const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps) => {
+interface BookingDateBarProps {
+  hotelId: number
+  onDateChange?: (start: Date, end: Date, nights: number) => void
+  onRoomGuestChange?: (data: RoomGuest) => void
+  onRecommendResult?: (result: RecommendResult | null) => void
+}
+
+const BookingDateBar = ({ hotelId, onDateChange, onRoomGuestChange, onRecommendResult }: BookingDateBarProps) => {
   /* ---- 日期 ---- */
   const [startDate, setStartDate] = useState<Date>(() => new Date())
   const [endDate, setEndDate] = useState<Date>(() => {
@@ -69,6 +71,9 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
     children: 0,
   })
   const [popupVisible, setPopupVisible] = useState(false)
+  /* ---- 推荐结果 ---- */
+  const [recommendResult, setRecommendResult] = useState<RecommendResult | null>(null)
+  const [isRecommending, setIsRecommending] = useState(false)
 
   /* ---- 派生数据 ---- */
   const nights = useMemo(() => diffDays(startDate, endDate), [startDate, endDate])
@@ -83,29 +88,49 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
     return [toStr(startDate), toStr(endDate)];
   }, [startDate, endDate])
 
+  /* ---- 推荐逻辑 ---- */
+  const triggerRecommend = useCallback(async (
+    guest: RoomGuest,
+    start: Date,
+    end: Date,
+    nightCount: number
+  ) => {
+    setIsRecommending(true)
+    try {
+      const result = await recommendRooms(
+        hotelId,
+        guest.rooms,
+        guest.adults,
+        guest.children,
+        toStr(start),
+        toStr(end),
+        nightCount
+      )
+      setRecommendResult(result)
+      onRecommendResult?.(result)
+      console.log("推荐结果为：", result)
+    } catch (err) {
+      console.error('recommendRooms error', err)
+      setRecommendResult(null)
+      onRecommendResult?.(null)
+    } finally {
+      setIsRecommending(false)
+    }
+  }, [hotelId, onRecommendResult])
+
   /* ---- 日历回调 ---- */
   const onCalendarConfirm = useCallback(([s, e]: any) => {
     if (s && e) {
-      const start = new Date(s[3])  // 获取类似"2026/03/09"
+      const start = new Date(s[3])
       const end = new Date(e[3])
+      const nightCount = diffDays(start, end)
       setStartDate(start)
       setEndDate(end)
-      onDateChange?.(start, end, diffDays(start, end))
+      onDateChange?.(start, end, nightCount)
+      triggerRecommend(roomGuest, start, end, nightCount)  // 用最新日期 + 当前人数
     }
     setCalendarVisible(false)
-  }, [onDateChange])
-
-  /* ---- 房间弹窗回调 ---- */
-  const openPopup = useCallback(() => {
-    setTempRoomGuest({ ...roomGuest })
-    setPopupVisible(true)
-  }, [roomGuest])
-
-  const onConfirm = useCallback(() => {
-    setRoomGuest({ ...tempRoomGuest })
-    onRoomGuestChange?.({ ...tempRoomGuest })
-    setPopupVisible(false)
-  }, [tempRoomGuest, onRoomGuestChange])
+  }, [onDateChange, triggerRecommend, roomGuest])
 
   useEffect(() => {
     const fetchMaxDate = async () => {
@@ -120,6 +145,43 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
     }
   
     fetchMaxDate()
+  }, [])
+
+  /* ---- 房间弹窗回调 ---- */
+  const openPopup = useCallback(() => {
+    setTempRoomGuest({ ...roomGuest })
+    setPopupVisible(true)
+  }, [roomGuest])
+
+  const onPopupConfirm = useCallback(() => {
+    const confirmed = { ...tempRoomGuest }
+    setRoomGuest(confirmed)
+    onRoomGuestChange?.(confirmed)
+    setPopupVisible(false)
+    triggerRecommend(confirmed, startDate, endDate, nights)  // 用最新人数 + 当前日期
+  }, [tempRoomGuest, startDate, endDate, nights, onRoomGuestChange, triggerRecommend])
+
+  /* ---- 人数-间数 逻辑计算 ---- */
+  const resolveRoomGuest = (
+    prev: RoomGuest,
+    patch: Partial<RoomGuest>
+  ): RoomGuest => {
+    const merged = { ...prev, ...patch }
+    const adults = Math.max(merged.adults, merged.rooms)
+    const rooms = Math.min(merged.rooms, adults)
+    return { rooms, adults, children: merged.children }
+  }
+
+  const handleRoomsChange = useCallback((v: number) => {
+    setTempRoomGuest((p) => resolveRoomGuest(p, { rooms: Number(v) }))
+  }, [])
+  
+  const handleAdultsChange = useCallback((v: number) => {
+    setTempRoomGuest((p) => resolveRoomGuest(p, { adults: Number(v) }))
+  }, [])
+  
+  const handleChildrenChange = useCallback((v: number) => {
+    setTempRoomGuest((p) => resolveRoomGuest(p, { children: Number(v) }))
   }, [])
 
   return (
@@ -152,6 +214,14 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
         </View>
       </View>
 
+      {/* 选房推荐组件 */}
+      {/* {recommendResult && (
+        <RoomRecommendResult
+          result={recommendResult}
+          nights={2}
+        />
+      )} */}
+
       {/* 弹窗组件 */}
       <Calendar
         visible={calendarVisible}
@@ -164,7 +234,7 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
         renderBottomButton={() => (
           <View className='calendar-footer'>
             <Button 
-              type='info' size='large' onClick={onConfirm}
+              type='info' size='large'
               style={{
                 width: '70%',
                 '--nutui-button-large-font-size':'15px',
@@ -201,26 +271,9 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
             <Counter
               value={tempRoomGuest.rooms}
               min={1}
-              max={10}
-              onChange={(v) =>
-                setTempRoomGuest((p) => ({ ...p, rooms: Number(v) }))
-              }
+              // max={5}
+              onChange={handleRoomsChange}
             />
-            {/* <InputNumber
-              value={tempRoomGuest.rooms}
-              min={2}
-              max={10}
-              onChange={(v) =>
-                setTempRoomGuest((p) => ({ ...p, rooms: Number(v) }))
-              }
-              style={{
-                '--nutui-inputnumber-input-font-size':'15px',
-                '--nutui-inputnumber-input-margin':'10px',
-                '--nutui-inputnumber-button-width': '18px',
-                '--nutui-inputnumber-icon-color': '#0066FF',
-                '--nutui-inputnumber-disabled-color': '#c8c9cc',
-              } as React.CSSProperties}
-            /> */}
           </View>
 
           <Divider style={{ margin: 0, padding: '0 32px' }} />
@@ -230,25 +283,10 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
             <Text className='field-label'>成人数</Text>
             <Counter
               value={tempRoomGuest.adults}
-              min={1}
+              min={tempRoomGuest.rooms}
               max={20}
-              onChange={(v) =>
-                setTempRoomGuest((p) => ({ ...p, adults: Number(v) }))
-              }
+              onChange={handleAdultsChange}
             />
-            {/* <InputNumber
-              value={tempRoomGuest.adults}
-              min={1}
-              max={20}
-              onChange={(v) =>
-                setTempRoomGuest((p) => ({ ...p, adults: Number(v) }))
-              }
-              style={{
-                '--nutui-inputnumber-input-font-size':'15px',
-                '--nutui-inputnumber-input-margin':'10px',
-                '--nutui-inputnumber-button-width': '18px'
-              } as React.CSSProperties}
-            /> */}
           </View>
 
           <Divider style={{ margin: 0, padding: '0 32px' }} />
@@ -263,29 +301,14 @@ const BookingDateBar = ({ onDateChange, onRoomGuestChange}: BookingDateBarProps)
               value={tempRoomGuest.children}
               min={0}
               max={20}
-              onChange={(v) =>
-                setTempRoomGuest((p) => ({ ...p, children: Number(v) }))
-              }
+              onChange={handleChildrenChange}
             />
-            {/* <InputNumber
-              value={tempRoomGuest.children}
-              min={0}
-              max={10}
-              onChange={(v) =>
-                setTempRoomGuest((p) => ({ ...p, children: Number(v) }))
-              }
-              style={{
-                '--nutui-inputnumber-input-font-size':'15px',
-                '--nutui-inputnumber-input-margin':'10px',
-                '--nutui-inputnumber-button-width': '18px'
-              } as React.CSSProperties}
-            /> */}
           </View>
 
           {/* 完成 */}
           <View className='popup-footer'>
             <Button 
-              type='info' size='large' onClick={onConfirm}
+              type='info' size='large' onClick={onPopupConfirm}
               style={{
                 width: '70%',
                 '--nutui-button-large-font-size':'15px',

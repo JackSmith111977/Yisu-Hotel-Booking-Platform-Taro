@@ -3,33 +3,9 @@ import Taro from "@tarojs/taro";
 import { View, Text, Image } from "@tarojs/components";
 import { Tag, Button } from "@nutui/nutui-react-taro";
 import { callSupabase } from "@/utils/supabase";
+import { BedInfo, RoomType, RoomAvailability } from "@/types/detailPage/RoomList";
+import { RoomRecommendResult } from "../RoomrecommendResult";
 import "./index.scss";
-
-interface BedInfo {
-  type: string;
-  count: number;
-}
-
-interface RoomType {
-  id: number;
-  hotel_id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  size: number;
-  description: string;
-  max_guests: number;
-  beds: BedInfo[];
-  images: string[];
-  facilities: string[];
-}
-
-interface RoomAvailability {
-  room_type_id: number;
-  date: string;
-  total_count: number;
-  booked_count: number;
-}
 
 interface RoomListProps {
   hotelId?: number;
@@ -103,10 +79,10 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, onPriceReady }: RoomList
     fetchData();
   }, [hotelId, targetStart, targetEnd]);
 
-  // 获取某房型的实际可用数，availability 表无记录时兜底用 room.quantity
+  // 获取某房型的实际可用数
   const getAvailable = (room: RoomType): number => {
     if (room.id in availabilityMap) return availabilityMap[room.id];
-    return room.quantity;
+    return 0;
   };
 
   const sortedRooms = useMemo(() => {
@@ -220,7 +196,7 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, onPriceReady }: RoomList
                 </View>
               )}
 
-              {/* 价格区域 — 用 available 替代 room.quantity */}
+              {/* 价格区域 */}
               <View className='price-row'>
                 {available === 0
                   ? <Text className='sellout-text'>已售罄</Text>
