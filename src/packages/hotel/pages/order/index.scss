@@ -1,0 +1,277 @@
+/* ─────────── 全局 ─────────── */
+.order-page {
+    background: #f5f5f5;
+    min-height: 100vh;
+    padding: 10px 12px;
+    box-sizing: border-box;
+}
+
+/* ─────────── 卡片 ─────────── */
+.card {
+    background: #fff;
+    margin: 10rpx;
+    border-radius: 16rpx;
+    padding: 32rpx 28rpx;
+}
+
+/* ─────────── 日期行 ─────────── */
+.date-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 20rpx;
+}
+.date-col {
+    display: flex;
+    flex-direction: column;
+}
+.date-col-right {
+    align-items: flex-end;
+}
+.date-main {
+    font-size: 30rpx;
+    font-weight: bold;
+    color: #222;
+}
+.date-sub {
+    font-size: 22rpx;
+    color: #999;
+    margin-top: 6rpx;
+}
+.date-mid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2rpx;
+}
+.nights-badge {
+    font-size: 22rpx;
+    color: #666;
+    margin-bottom: 2rpx;
+}
+.dash-line {
+    font-size: 22rpx;
+    color: #bbb;
+    letter-spacing: -6rpx;
+}
+
+/* ─────────── 分割线 ─────────── */
+.divider {
+    height: 1rpx;
+    background: #f0f0f0;
+    margin: 18rpx 0;
+}
+
+/* ─────────── 房型描述 ─────────── */
+.room-type {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+.room-desc {
+    font-size: 26rpx;
+    font-weight: 600;
+    color: #222;
+    line-height: 42rpx;
+}
+
+/* ─────────── 订房信息标题 ─────────── */
+.section-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28rpx;
+}
+.title-wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.section-title {
+    font-size: 30rpx;
+    font-weight: bold;
+    color: #222;
+}
+.help-bubble {
+    width: 32rpx;
+    height: 32rpx;
+    border-radius: 50%;
+    border: 1rpx solid #bbb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8rpx;
+}
+.help-txt {
+    font-size: 20rpx;
+    color: #999;
+}
+.counter-wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.jian {
+    font-size: 28rpx;
+    color: #222;
+    margin-left: 6rpx;
+}
+/* InputNumber 微调 */
+.room-counter .nut-input-number__input {
+    width: 64rpx !important;
+    font-size: 28rpx !important;
+}
+.room-counter .nut-icon {
+    font-size: 20rpx;
+}
+
+/* ─────────── 表单行 ─────────── */
+.form-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 18rpx 0;
+}
+.label-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 160rpx;
+    flex-shrink: 0;
+}
+.required {
+    color: #ff4d4f;
+    font-size: 26rpx;
+    margin-right: 4rpx;
+}
+.label {
+    font-size: 28rpx;
+    color: #333;
+}
+.input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.nut-input-field {
+    flex: 1;
+    font-size: 28rpx;
+    color: #333;
+    border: none;
+    outline: none;
+    background: transparent;
+}
+.nut-input-field input {
+    font-size: 28rpx !important;
+    color: #333 !important;
+}
+.icon-btn {
+    font-size: 36rpx;
+    margin-left: 12rpx;
+    color: #1677ff;
+}
+.country-code {
+    font-size: 28rpx;
+    color: #333;
+    margin-right: 14rpx;
+    flex-shrink: 0;
+}
+.phone-field {
+    flex: 1;
+}
+.row-line {
+    height: 1rpx;
+    background: #f0f0f0;
+}
+
+/* ─────────── 支付栏 ─────────── */
+.pay-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120rpx;
+    background: #fff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 32rpx;
+    box-shadow: 0 -2rpx 16rpx rgba(0,0,0,0.08);
+    z-index: 99;
+}
+.pay-info {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+}
+.pay-label {
+    font-size: 24rpx;
+    color: #666;
+    margin-right: 6rpx;
+}
+.pay-price {
+    font-size: 46rpx;
+    font-weight: bold;
+    color: #1677ff;
+}
+.pay-detail-link {
+    font-size: 22rpx;
+    color: #999;
+    margin-left: 8rpx;
+}
+.pay-btn {
+    width: 240rpx !important;
+    height: 84rpx !important;
+    background: #1677ff !important;
+    color: #fff !important;
+    border-radius: 44rpx !important;
+    font-size: 30rpx !important;
+    font-weight: bold !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.pay-modal-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  
+  .pay-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 48px 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    min-width: 240px;
+  }
+  
+  .pay-spinner {
+    font-size: 48px;
+    display: inline-block;
+    will-change: transform;
+  }
+  
+  .pay-success-icon {
+    font-size: 48px;
+  }
+  
+  .pay-modal-text {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+  }

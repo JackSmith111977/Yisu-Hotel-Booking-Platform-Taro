@@ -1,0 +1,238 @@
+// 整体外框：用 f5f5f5 背景包裹卡片，与 RoomList 一致
+.recommend-wrapper {
+  background: #f5f5f5;
+  border-radius: 16px;
+  overflow: hidden;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  margin: 12px 0;
+}
+
+// ── 标题区域
+.recommend-header {
+  background: linear-gradient(135deg, #fde8c8 0%, #f8d4a0 50%, #f5c880 100%);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recommend-icon {
+  color: #b8722a;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.recommend-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #5a3500;
+  flex-shrink: 0;
+}
+
+.recommend-subtitle {
+  font-size: 22px;
+  color: #7a5020;
+  flex: 1;
+}
+
+// ── 房型列表
+.recommend-room-list {
+  background: #f5f5f5;
+}
+
+// ── 房型卡片
+.recommend-room-card {
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  margin-bottom: 12px;
+  padding: 24px;
+  overflow: hidden;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ── 图片：完全对齐 .image-wrap（220×220 正方形）
+.recommend-image-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 220px;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-right: 20px;
+}
+
+.recommend-room-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.recommend-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background-color: #f0f0f0;
+}
+
+.recommend-placeholder-text {
+  font-size: 22px;
+  color: #ccc;
+}
+
+.recommend-image-count {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border-top-right-radius: 12px;
+  padding: 4px 14px;
+}
+
+.recommend-image-count-text {
+  font-size: 22px;
+  color: #fff;
+}
+
+// ── 右侧信息：完全对齐 .room-info
+.recommend-room-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+// 间数标签 + 房型名同行，对齐 .room-header
+.recommend-room-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recommend-count-tag {
+  background: #1677ff;
+  border-radius: 6px;
+  padding: 2px 10px;
+  flex-shrink: 0;
+}
+
+.recommend-count-text {
+  font-size: 22px;
+  color: #fff;
+  font-weight: 600;
+}
+
+// 对齐 .room-name
+.recommend-room-name {
+  font-size: 35px;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+// 对齐 .detail-text
+.recommend-detail-text {
+  font-size: 25px;
+  color: #999;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 对齐 .room-tags
+.recommend-room-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// 价格行：右对齐，对齐 .price-row 风格
+.recommend-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+// 对齐 .price-symbol
+.recommend-price-symbol {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ff6600;
+}
+
+// 对齐 .price-text
+.recommend-price-text {
+  font-size: 40px;
+  font-weight: 700;
+  color: #ff6600;
+  line-height: 1;
+}
+
+// 间数×晚数说明
+.recommend-price-suffix {
+  font-size: 22px;
+  color: #ff6600;
+  margin-left: 2px;
+}
+
+// 小计行
+.recommend-subtotal-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.recommend-subtotal-text {
+  font-size: 22px;
+  color: #bbb;
+}
+
+// ── 底部总价 + 预订按钮
+.recommend-footer {
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.footer-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-total-row {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.footer-currency {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ff6600;
+}
+
+.footer-total-price {
+  font-size: 40px;
+  font-weight: 700;
+  color: #ff6600;
+  line-height: 1;
+}

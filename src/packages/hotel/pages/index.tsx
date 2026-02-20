@@ -1,13 +1,16 @@
 import Taro, { useLoad, usePageScroll } from '@tarojs/taro'
-import { View } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
+import { RecommendResult } from '@/utils/recommendRooms'
+import { User } from '@nutui/icons-react-taro'
 import { useState, useRef, useEffect } from 'react'
-import { HotelType } from '../../../../types/hotel'
+import { HotelType } from '../../../types/detailPage/hotel'
 import HotelSwiper from '../components/HotelSwiper'
 import HotelInfo from '../components/HotelInfo'
 import BookingDateBar from '../components/BookingDateBar'
 import BottomBar from '../components/BottomBar'
 import RoomList from '../components/RoomList'
 import StickyTopBar from '../components/StickyTopBar'
+import { RoomRecommendResult } from '../components/RoomrecommendResult'
 import './index.scss'
 
 interface DateRange {
@@ -40,6 +43,7 @@ const HotelDetail = () => {
   const [showTopBar, setShowTopBar] = useState(false)
   const [showBottomBar, setShowBottomBar] = useState(true)
   const [lowestPrice, setLowestPrice] = useState(0);
+  const [recommendResult, setRecommendResult] = useState<RecommendResult | null>(null)
 
   // 获取传送的酒店数据
   useLoad(() => {
@@ -111,18 +115,40 @@ const HotelDetail = () => {
       >
         <View className='booking-section'>
           <BookingDateBar
+            hotelId={hotel?.id ?? -1}
             onDateChange={(start, end, nights) => setDateRange({ start, end, nights })}
             onRoomGuestChange={(data) => setRoomGuest(data)}
+            onRecommendResult={setRecommendResult}
           />
         </View>
-      </View>      
+      </View>
+      
+      {recommendResult && (
+        <RoomRecommendResult 
+          result={recommendResult} 
+          nights={dateRange.nights}
+          adultCount={roomGuest.adults}
+          childCount={roomGuest.children}
+        />
+      )}
 
       {/* 房型列表 */}
       {/* dateRange={dateRange} roomGuest={roomGuest} */}
+      {recommendResult && (
+        <View className='prompt'>
+          <User className='prompt-icon' />
+          <Text >其余可供选择的房型</Text>
+          {/* <Text >{`不满足"${roomGuest.adults}名成人, ${roomGuest.children}名儿童"的房型`}</Text> */}
+        </View>        
+      )}
+
       <RoomList 
         hotelId={hotel?.id} 
         checkInDate={toStr(dateRange.start)}
         checkOutDate={toStr(dateRange.end)}
+        nights={dateRange.nights}
+        adultCount={roomGuest.adults}
+        childCount={roomGuest.children}
         onPriceReady={setLowestPrice} 
       />
 

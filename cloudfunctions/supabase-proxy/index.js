@@ -74,7 +74,13 @@ exports.main = async (event, context) => {
           operators.forEach((op) => {
             if (params[op]) {
               Object.keys(params[op]).forEach((key) => {
-                queryParams.append(key, `${op}.${params[op][key]}`);
+                const val = params[op][key];
+                // 支持数组（同一字段多个条件）
+                if (Array.isArray(val)) {
+                  val.forEach((v) => queryParams.append(key, `${op}.${v}`));
+                } else {
+                  queryParams.append(key, `${op}.${val}`);
+                }
               });
             }
           });
