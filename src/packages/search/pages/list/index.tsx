@@ -341,8 +341,11 @@ export default function SearchList() {
     }
 
     // 6.5 推荐列表 / 兜底渲染 (非 VirtualList)
-    // 当搜索无结果但有推荐时，或者其他非 VirtualList 场景
-    if (recommendations.length > 0) {
+    // 当搜索结果较少(mixed)或无结果但有推荐(empty)时
+    if (
+      resultType === "mixed" ||
+      (resultType === "empty" && recommendations.length > 0)
+    ) {
       return (
         <ScrollView
           scrollY
@@ -350,13 +353,30 @@ export default function SearchList() {
           style={{ flex: 1, overflow: "hidden" }} // 确保 ScrollView 撑满剩余空间
         >
           <View className="list-container">
+            {/* Mixed 状态：先展示搜索结果 */}
+            {resultType === "mixed" &&
+              list.map((hotel) => (
+                <HotelListItem
+                  key={hotel.id}
+                  hotel={hotel}
+                  onClick={handleHotelClick}
+                />
+              ))}
+
+            {/* Empty 状态：展示空提示 */}
             {resultType === "empty" && (
               <EmptyState
                 title="暂无符合条件的酒店"
                 description="为您推荐以下热门酒店"
               />
             )}
-            <RecommendationDivider text="为您推荐" />
+
+            {/* 推荐分割线：仅当有推荐数据时展示 */}
+            {recommendations.length > 0 && (
+              <RecommendationDivider text="为您推荐" />
+            )}
+
+            {/* 推荐列表 */}
             {recommendations.map((hotel) => (
               <HotelListItem
                 key={`rec-${hotel.id}`}
