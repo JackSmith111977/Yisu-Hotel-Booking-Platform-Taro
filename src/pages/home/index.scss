@@ -147,4 +147,20 @@
   --nutui-cascader-item-font-size: 32px;
   --nutui-cascader-item-height: 80px;
   --nutui-cascader-item-line-height: 80px;
+
+  .nut-address__content {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  // 强制开启滚动容器的触摸滚动
+  .nut-address-region,
+  .nut-address-list,
+  .nut-cascader-pane,
+  .nut-tab-pane {
+    -webkit-overflow-scrolling: touch !important;
+    overflow-y: auto !important;
+    touch-action: pan-y !important;
+    overscroll-behavior: contain; // 防止滚动穿透到底部
+  }
 }

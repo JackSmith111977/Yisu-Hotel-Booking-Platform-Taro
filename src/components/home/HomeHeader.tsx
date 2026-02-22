@@ -1,8 +1,9 @@
 import { fetchDistricts } from "@/utils/map";
 import {
-  Address,
+  Cascader,
   ConfigProvider,
   Image,
+  Popup,
   SearchBar,
 } from "@nutui/nutui-react-taro";
 import { Text, View } from "@tarojs/components";
@@ -36,6 +37,11 @@ const addressTheme = {
   nutuiCascaderItemFontSize: "16px", // 级联选择器字体大小
   nutuiCascaderItemHeight: "40px", // 级联选择器选项高度
   nutuiCascaderPaneHeight: "400px", // 级联选择器弹窗高度
+  // 覆盖 popup 遮罩层默认的阻止滚动行为
+  // 注意：ConfigProvider 的 theme 是 CSS 变量映射，不是 props
+  // 这种用法其实不对，ConfigProvider 只能改样式变量。
+  // 但是 NutUI 有时会读取 context 里的配置。
+  // 真正的解法还是在组件 props 上。
 };
 
 /**
@@ -281,15 +287,33 @@ export const HomeHeader = ({
         </ConfigProvider>
       </View>
       <ConfigProvider theme={addressTheme}>
-        {/* NutUI Address 组件 */}
-        <Address
+        {/* NutUI Cascader 组件 + Popup 手动实现 */}
+        <Popup
           visible={isVisible}
-          options={options}
-          title="选择城市"
+          position="bottom"
+          round
+          closeable
           onClose={closeAddress}
-          onChange={handleChange}
-          className="custom-address"
-        />
+          title="选择城市"
+          lockScroll={false} // 👈 关键：解锁背景滚动拦截
+          destroyOnClose
+          style={{ height: "60vh" }} // 确保弹窗有高度
+        >
+          <View style={{ height: "100%", width: "100%", overflow: "hidden" }}>
+            <Cascader
+              visible={isVisible}
+              options={options}
+              value={[]} // 每次打开重置或传入当前值
+              onClose={closeAddress}
+              onChange={handleChange}
+              title="选择城市"
+              closeable={false} // 使用 Popup 的关闭按钮
+              popupProps={{
+                lockScroll: false,
+              }}
+            />
+          </View>
+        </Popup>
       </ConfigProvider>
     </View>
   );
