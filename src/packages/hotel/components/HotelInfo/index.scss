@@ -69,3 +69,19 @@ $border-color: #eeeeee;
   color: $text-secondary;
   line-height: 1.5;
 }
+
+.phone-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.phone-icon {
+  font-size: 26px;
+}
+
+.phone-text {
+  font-size: 26px;
+  color: #666;
+}

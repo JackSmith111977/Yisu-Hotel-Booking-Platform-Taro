@@ -1,0 +1,48 @@
+.hotel-tags {
+    padding: 16px;
+    background: #fff;
+  
+    &__list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+  
+    &__item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: #f4f8ff;
+      border-radius: 40px;
+      border: 1px solid #e0eaff;
+    }
+  
+    &__icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+  
+    &__label {
+      font-size: 24px;
+      color: #4a6fa5;
+      line-height: 40px;
+      white-space: nowrap;
+    }
+  
+    &__toggle {
+      display: flex;
+      align-items: center;
+      padding: 8px 20px;
+      background: transparent;
+      border-radius: 40px;
+      border: 1px dashed #c0d0ea;
+  
+      text {
+        font-size: 24px;
+        color: #4a6fa5;
+        line-height: 40px;
+      }
+    }
+  }

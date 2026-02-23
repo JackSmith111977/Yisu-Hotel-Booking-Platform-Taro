@@ -13,4 +13,5 @@ export interface HotelType {
     rejected_reason: string;
     region: string;
     album: string[];
+    tags: string[];
 }
