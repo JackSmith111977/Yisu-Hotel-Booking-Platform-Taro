@@ -118,6 +118,13 @@ exports.main = async (event, context) => {
     // --------------------------------------------------
     if (action === "rpc") {
       const url = `${SUPABASE_URL}/rest/v1/rpc/${rpcName}`;
+      
+      // 调试：查看实际传递的参数
+      if (rpcName === 'auth_wechat_login') {
+        console.log('auth_wechat_login 函数调用参数:', params);
+        console.log('函数调用URL:', url);
+      }
+      
       const response = await axios.post(url, params || {}, { headers });
       return { success: true, data: response.data };
     }

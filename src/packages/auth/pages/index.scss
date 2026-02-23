@@ -1,0 +1,254 @@
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e4e8ed 100%);
+  padding-bottom: 100px;
+}
+
+.login-header {
+  padding-top: 100px;
+  padding-bottom: 60px;
+  text-align: center;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #999;
+}
+
+.login-content {
+  padding: 0 24px;
+}
+
+.login-tab {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.tab-bar {
+  display: flex;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 15px;
+  color: #999;
+  position: relative;
+  transition: all 0.3s;
+
+  &.active {
+    color: #ff6b6b;
+    font-weight: 600;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 2px;
+      background: #ff6b6b;
+      border-radius: 1px;
+    }
+  }
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.phone-input-wrapper {
+  display: flex;
+  gap: 12px;
+}
+
+.phone-prefix {
+  width: 80px;
+  height: 48px;
+  background: #f7f8fa;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+}
+
+.input-field {
+  flex: 1;
+  height: 48px;
+  background: #f7f8fa;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 15px;
+  color: #333;
+  border: none;
+  outline: none;
+
+  &::placeholder {
+    color: #ccc;
+  }
+}
+
+.code-input-wrapper {
+  display: flex;
+  gap: 12px;
+}
+
+.code-input {
+  flex: 1;
+}
+
+.send-code-btn {
+  width: 120px;
+  height: 48px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  border-radius: 12px;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.disabled {
+    background: #ccc;
+  }
+}
+
+.login-btn {
+  width: 100%;
+  height: 52px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  border-radius: 26px;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.wechat-phone-btn {
+  width: 100%;
+  height: 52px;
+  background: #07c160;
+  border-radius: 26px;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(7, 193, 96, 0.3);
+  margin-top: 20px;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 32px 0;
+  padding: 0 24px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e8e8e8;
+}
+
+.divider-text {
+  margin: 0 16px;
+  font-size: 14px;
+  color: #999;
+}
+
+.wechat-login {
+  padding: 0 24px;
+}
+
+.wechat-btn {
+  width: 100%;
+  height: 52px;
+  background: #07c160;
+  border-radius: 26px;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(7, 193, 96, 0.3);
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.wechat-icon {
+  font-size: 24px;
+}
+
+.agreement {
+  margin-top: 32px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.agreement-text {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.6;
+}
+
+.agreement-link {
+  color: #ff6b6b;
+}

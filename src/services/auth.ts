@@ -1,0 +1,160 @@
+import Taro from '@tarojs/taro';
+
+// 用户信息接口（与wechat_users表结构对应）
+export interface UserInfo {
+  id?: string;
+  openid?: string;
+  nickname?: string;
+  avatar?: string;
+  gender?: number;
+  created_at?: string;
+  last_login_at?: string;
+}
+
+// 登录响应接口
+export interface LoginResponse {
+  success: boolean;
+  message?: string;
+  user?: UserInfo;
+}
+
+class AuthService {
+  // 微信登录
+  async wechatLogin(
+    nickname?: string,
+    avatar?: string,
+    gender?: number
+  ): Promise<LoginResponse> {
+    try {
+      console.log('开始调用微信登录云函数，参数:', {
+        nickname,
+        avatar: avatar ? '有头像' : '无头像',
+        gender
+      });
+
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'auth_wechat_login',
+          p_nickname: nickname,
+          p_avatar: avatar,
+          p_gender: gender || 0
+        },
+      });
+
+      console.log('云函数调用结果:', result);
+      console.log('云函数返回的result.result:', result.result);
+
+      // 处理记录格式的返回结果
+      const resultData = result.result as any;
+      if (resultData && resultData.data && Array.isArray(resultData.data) && resultData.data.length > 0) {
+        const dbResult = resultData.data[0];
+        
+        if (dbResult.success) {
+          console.log('登录成功，返回用户信息:', dbResult);
+          
+          // 将数据库记录格式转换为前端需要的格式
+          return {
+            success: true,
+            user: {
+              id: dbResult.user_id,
+              openid: dbResult.user_openid,
+              nickname: dbResult.user_nickname,
+              avatar: dbResult.user_avatar,
+              gender: dbResult.user_gender,
+              created_at: dbResult.user_created_at,
+              last_login_at: dbResult.user_last_login_at
+            }
+          };
+        } else {
+          // 登录失败
+          console.error('登录失败，数据库返回失败状态');
+          return {
+            success: false,
+            message: '登录失败'
+          };
+        }
+      } else {
+        console.error('云函数返回格式错误，详细内容:', result.result);
+        return {
+          success: false,
+          message: "微信登录失败"
+        };
+      }
+    } catch (error) {
+      console.error("微信登录失败:", error);
+      return {
+        success: false,
+        message: `网络错误: ${error.message || '请重试'}`,
+      };
+    }
+  }
+
+  // 获取用户信息
+  async getUserInfo(): Promise<UserInfo | null> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'get_user_info',
+        },
+      });
+
+      if (result.result && typeof result.result === 'object' && 'success' in result.result) {
+        const response = result.result as any;
+        return response.success ? response.user : null;
+      }
+      return null;
+    } catch (error) {
+      console.error("获取用户信息失败:", error);
+      return null;
+    }
+  }
+
+  // 更新用户信息
+  async updateUserInfo(
+    userId: string,
+    nickname?: string,
+    avatar?: string,
+    gender?: number,
+    city?: string,
+    province?: string,
+    country?: string
+  ): Promise<LoginResponse> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'update_user_info',
+          p_user_id: userId,
+          p_nickname: nickname,
+          p_avatar: avatar,
+          p_gender: gender,
+          p_city: city,
+          p_province: province,
+          p_country: country,
+        },
+      });
+
+      // 确保 result.result 是对象类型
+      if (result.result && typeof result.result === 'object' && 'success' in result.result) {
+        return result.result as LoginResponse;
+      } else {
+        return {
+          success: false,
+          message: typeof result.result === 'object' && 'message' in result.result 
+            ? (result.result as any).message || "更新用户信息失败" 
+            : "更新用户信息失败",
+        };
+      }
+    } catch (error) {
+      console.error("更新用户信息失败:", error);
+      return {
+        success: false,
+        message: "网络错误，请重试",
+      };
+    }
+  }
+}
+
+export const authService = new AuthService();
