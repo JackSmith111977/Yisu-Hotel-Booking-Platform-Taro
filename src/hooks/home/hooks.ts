@@ -1,9 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import Taro from "@tarojs/taro";
 import { navigateTo } from "@/utils/router";
 import { RoutePath } from "@/constants/route";
 import { reverseGeocoder } from "@/utils/map";
 import { useSearchStore } from "@/store/searchStore";
+import { Banner } from "@/types/home/banner";
+import { fetchHomeBanners } from "@/services/home";
 
 /**
  * 首页逻辑钩子
@@ -13,6 +15,26 @@ import { useSearchStore } from "@/store/searchStore";
 export const useHomeLogic = () => {
   // 引入 useSearchStore
   const { params, setParams, addHistory } = useSearchStore();
+
+  // Banner 状态
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loadingBanners, setLoadingBanners] = useState(true);
+
+  // 获取 Banner
+  useEffect(() => {
+    const loadBanners = async () => {
+      setLoadingBanners(true);
+      try {
+        const list = await fetchHomeBanners();
+        setBanners(list);
+      } catch (error) {
+        console.error("Failed to load banners:", error);
+      } finally {
+        setLoadingBanners(false);
+      }
+    };
+    loadBanners();
+  }, []);
 
   /**
    * 初始化定位
@@ -107,5 +129,7 @@ export const useHomeLogic = () => {
     initLocation,
     handleDateConfirm,
     handleSearch,
+    banners,
+    loadingBanners,
   };
 };

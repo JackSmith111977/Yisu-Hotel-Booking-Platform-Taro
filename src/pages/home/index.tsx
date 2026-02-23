@@ -1,20 +1,25 @@
+import BannerSwiper from "@/components/home/BannerSwiper";
 import { DateSelector } from "@/components/home/DateSelector";
 import { FilterBar } from "@/components/home/FilterBar";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { useHomeLogic } from "@/hooks/home/hooks";
+import { useSearchStore } from "@/store/searchStore";
 import { Button, Divider } from "@nutui/nutui-react-taro";
 import { View } from "@tarojs/components";
 import { useEffect } from "react";
 import "./index.scss";
 
 export default function Index() {
+  // 引入 useSearchStore
+  const { params: searchState, setParams: setSearchState } = useSearchStore();
+
   // 解构出useHomeLogic返回的所有成员
   const {
-    searchState,
-    setSearchState,
     initLocation,
     handleDateConfirm,
     handleSearch,
+    banners,
+    loadingBanners,
   } = useHomeLogic();
 
   // 初始化定位和云环境
@@ -23,14 +28,18 @@ export default function Index() {
   }, [initLocation]);
 
   return (
-    <View className='home-page'>
+    <View className="home-page">
       {/* Banner 区域 */}
-      <View className='banner-area'>
-        <View className='banner-title'>易宿-酒店预订平台</View>
+      <View className="banner-area">
+        {loadingBanners || banners.length > 0 ? (
+          <BannerSwiper banners={banners} loading={loadingBanners} />
+        ) : (
+          <View className="banner-title">易宿-酒店预订平台</View>
+        )}
       </View>
 
       {/* 搜索卡片 */}
-      <View className='search-card'>
+      <View className="search-card">
         <HomeHeader
           city={searchState.city}
           keyword={searchState.keyword}
@@ -74,8 +83,8 @@ export default function Index() {
 
         {/* 搜索按钮 */}
         <Button
-          className='search-btn'
-          type='primary'
+          className="search-btn"
+          type="primary"
           block
           onClick={handleSearch}
           style={{

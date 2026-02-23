@@ -1,0 +1,12 @@
+{
+  "name": "get-home-banners",
+  "version": "1.0.0",
+  "description": "获取首页 Banner 列表（带加权随机算法）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest",
+    "axios": "^1.6.8"
+  },
+  "author": "",
+  "license": "ISC"
+}

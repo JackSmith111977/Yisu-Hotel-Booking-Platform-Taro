@@ -7,25 +7,33 @@
 }
 
 .banner-area {
-  height: 400px;
+  height: 400px; // 调整高度以适应 Banner
   background: linear-gradient(135deg, #1989fa 0%, #39b54a 100%);
-  padding: 60px 40px;
-  box-sizing: border-box;
+  padding: 0; // 移除内边距，使 Banner 占满
+  position: relative;
+  overflow: hidden;
+
+  // Banner 组件容器
+  .banner-swiper-container {
+    height: 100%;
+    width: 100%;
+  }
 
   .banner-title {
     color: #fff;
     font-size: 48px;
     font-weight: bold;
     margin-top: 40px;
+    text-align: center; // 居中显示
   }
 }
 
 .search-card {
   background: #fff;
-  margin: -100px 30px 0; // 向上浮动，覆盖部分 Banner
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  margin: -40px 20px 0; // 向上浮动，稍微覆盖 Banner 底部
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   position: relative;
   z-index: 10;
   box-sizing: border-box;
