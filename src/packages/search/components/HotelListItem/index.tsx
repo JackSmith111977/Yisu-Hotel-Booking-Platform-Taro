@@ -100,10 +100,11 @@ const HotelListItem = ({
       {/* 左侧：酒店封面 */}
       <View className="image-wrapper">
         <Image
-          className="hotel-image"
           src={image || DEFAULT_IMAGE}
-          mode="aspectFill"
+          className="hotel-image"
+          radius={8}
           lazyLoad
+          mode="aspectFill"
         />
         {/* 售罄遮罩：绝对定位覆盖在图片上 */}
         {is_sold_out && (
@@ -113,49 +114,49 @@ const HotelListItem = ({
         )}
       </View>
 
-      {/* 右侧：内容区域 */}
-      <View className="content-wrapper">
-        {/* 标题行：名称与星级 */}
+      {/* 右侧：信息详情 */}
+      <View className="info-container">
+        {/* 第一行：标题 + 标签 */}
         <View className="header-row">
           <Text className="hotel-name" numberOfLines={1}>
-            {name_zh || "未知酒店"}
+            {name_zh}
           </Text>
-          {/* 星级展示：仅当星级大于 0 时显示 */}
-          {star_rating && star_rating > 0 && (
-            <Text className="star-rating">{star_rating}星级</Text>
+          {tags && tags.length > 0 && (
+            <View className="tags-container">
+              {tags.slice(0, 2).map((tag, index) => (
+                <Text key={index} className="tag-item">
+                  {tag}
+                </Text>
+              ))}
+            </View>
           )}
         </View>
 
-        {/* 评分与评价：突出显示评分 */}
+        {/* 第二行：评分 + 评论数 */}
         <View className="score-row">
-          <Text className="score-value">{formattedScore}</Text>
-          <Text className="score-label">分</Text>
+          <View className="score-badge">
+            <Text className="score-text">{formattedScore}</Text>
+            <Text className="score-suffix">分</Text>
+          </View>
+          <Text className="review-count">
+            {review_score ? "超棒" : "暂无评分"}
+          </Text>
+          <Text className="star-rating">{star_rating}星级</Text>
         </View>
 
-        {/* 地址/位置信息：单行截断 */}
+        {/* 第三行：位置 */}
         <View className="location-row">
           <Text className="address-text" numberOfLines={1}>
             {address || "暂无地址信息"}
           </Text>
+          <Text className="distance-text">距市中心 2.5km</Text>
         </View>
 
-        {/* 标签行：最多显示 3 个标签，超出隐藏 */}
-        {tags && tags.length > 0 && (
-          <View className="tags-row">
-            {tags.slice(0, 3).map((tag, index) => (
-              <View key={`${id}-tag-${index}`} className="tag-item">
-                <Text className="tag-text">{tag}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* 底部价格行：右对齐 */}
-        <View className="footer-row">{renderPrice}</View>
+        {/* 第四行：价格 + 按钮 */}
+        <View className="price-row">{renderPrice}</View>
       </View>
     </View>
   );
 };
 
-// 使用 React.memo 优化性能，仅当 props 深度变化时重新渲染
 export default React.memo(HotelListItem);

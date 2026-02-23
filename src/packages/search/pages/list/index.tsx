@@ -1,7 +1,8 @@
-import React, { useCallback, useState, useEffect, useMemo } from "react";
+import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { View, ScrollView } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { VirtualList } from "@nutui/nutui-react-taro";
+import { useShallow } from "zustand/react/shallow";
 import { useSearchStore } from "@/store/searchStore";
 import { useSearchList } from "../../hooks/useSearchList";
 import { useSearchInitialization } from "../../hooks/useSearchInitialization";
@@ -49,6 +50,8 @@ interface VirtualListScrollEvent {
 interface FooterPlaceholder {
   id: string;
   isFooter: true;
+  loading: boolean;
+  hasMore: boolean;
 }
 
 // 联合类型：列表项可能是酒店数据，也可能是底部的 Loading 条
@@ -111,7 +114,7 @@ export default function SearchList() {
   const initialized = useSearchInitialization();
 
   // 全局状态：搜索参数
-  const params = useSearchStore((state) => state.params);
+  const params = useSearchStore(useShallow((state) => state.params));
   const setParams = useSearchStore((state) => state.setParams);
 
   // --- 2. 核心：计算容器高度和列表项高度 (Fix P2 Defect) ---
@@ -211,14 +214,30 @@ export default function SearchList() {
     if (list.length === 0) return [];
 
     // 构造数据源：列表 + 底部 Loading 条
-    return [...list, { id: "footer-placeholder", isFooter: true }];
-  }, [list]);
+    return [
+      ...list,
+      {
+        id: "footer-placeholder",
+        isFooter: true,
+        loading,
+        hasMore,
+      },
+    ];
+  }, [list, loading, hasMore]);
 
   // --- 6. 虚拟列表渲染逻辑 ---
 
+  // 使用 useRef 保持 loadMore 的最新引用，以便在 itemRender 中使用稳定的回调
+  const loadMoreRef = useRef(loadMore);
+  loadMoreRef.current = loadMore;
+
+  const stableLoadMore = useCallback(() => {
+    loadMoreRef.current();
+  }, []);
+
   /**
    * 列表项渲染函数
-   * 依赖项: [handleHotelClick, loading, hasMore, loadMore] -> 涉及交互和状态展示
+   * 依赖项: [handleHotelClick, itemHeight, stableLoadMore] -> 保持引用稳定，避免列表闪烁
    */
   const itemRender = useCallback(
     (item: VirtualListItem, index: number) => {
@@ -227,10 +246,10 @@ export default function SearchList() {
         return (
           <ListFooter
             key="list-footer"
-            loading={loading}
-            hasMore={hasMore}
+            loading={item.loading}
+            hasMore={item.hasMore}
             itemHeight={itemHeight}
-            onLoad={loadMore}
+            onLoad={stableLoadMore}
           />
         );
       }
@@ -255,7 +274,7 @@ export default function SearchList() {
         </View>
       );
     },
-    [handleHotelClick, loading, hasMore, loadMore, itemHeight],
+    [handleHotelClick, itemHeight, stableLoadMore],
   );
 
   /**
