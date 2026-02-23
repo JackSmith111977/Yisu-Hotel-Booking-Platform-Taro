@@ -67,17 +67,12 @@ export default function User() {
               </View>
               <View className='user-details'>
                 <Text className='user-name'>{userInfo.nickname || '未设置昵称'}</Text>
-                <Text className='user-info'>点击编辑资料完善信息</Text>
               </View>
               <View className='edit-btn' onClick={handleEditProfile}>
                 <Text>编辑</Text>
               </View>
             </View>
             <View className='user-stats'>
-              <View className='stat-item'>
-                <Text className='stat-value'>{userInfo.login_count || 0}</Text>
-                <Text className='stat-label'>登录次数</Text>
-              </View>
               <View className='stat-item'>
                 <Text className='stat-value'>{userInfo.total_order_count || 0}</Text>
                 <Text className='stat-label'>订单数量</Text>

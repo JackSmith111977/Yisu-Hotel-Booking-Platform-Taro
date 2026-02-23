@@ -120,8 +120,8 @@ exports.main = async (event, context) => {
       const url = `${SUPABASE_URL}/rest/v1/rpc/${rpcName}`;
       
       // 调试：查看实际传递的参数
-      if (rpcName === 'auth_wechat_login') {
-        console.log('auth_wechat_login 函数调用参数:', params);
+      if (rpcName === 'auth_wechat_login' || rpcName === 'update_wechat_user') {
+        console.log('RPC 函数调用:', rpcName, '参数:', params);
         console.log('函数调用URL:', url);
       }
       

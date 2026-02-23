@@ -155,6 +155,62 @@ class AuthService {
       };
     }
   }
+
+  async updateProfile(data: { nickname?: string; avatar?: string }): Promise<LoginResponse> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'update_wechat_user',
+          p_nickname: data.nickname,
+          p_avatar: data.avatar
+        },
+      });
+
+      console.log('更新资料结果:', result);
+
+      const resultData = result.result as any;
+      
+      if (resultData && resultData.data && Array.isArray(resultData.data) && resultData.data.length > 0) {
+        const dbResult = resultData.data[0];
+        if (dbResult.success) {
+          return {
+            success: true,
+            user: {
+              id: dbResult.user_id,
+              openid: dbResult.user_openid,
+              nickname: dbResult.user_nickname,
+              avatar: dbResult.user_avatar,
+              gender: dbResult.user_gender,
+              created_at: dbResult.user_created_at,
+              last_login_at: dbResult.user_last_login_at
+            }
+          };
+        } else {
+          return {
+            success: false,
+            message: '更新失败'
+          };
+        }
+      } else if (resultData && resultData.success === false) {
+        return {
+          success: false,
+          message: resultData.error?.message || '更新失败'
+        };
+      }
+      
+      return {
+        success: false,
+        message: '更新失败'
+      };
+    } catch (error) {
+      console.error('更新资料失败:', error);
+      return {
+        success: false,
+        message: '网络错误，请重试'
+      };
+    }
+  }
 }
 
 export const authService = new AuthService();

@@ -19,7 +19,7 @@ export default defineAppConfig({
     // 认证分包
     {
       root: "packages/auth",
-      pages: ["pages/index"],
+      pages: ["pages/index", "pages/edit/index"],
     },
   ],
   // 3. TabBar 配置
