@@ -132,6 +132,10 @@ const customTheme = {
   nutuiIconWidth: "16px",
   nutuiIconHeight: "16px",
   nutuiIconLineHeight: "16px",
+  // 自定义变量：通过 ConfigProvider 传递给 CSS
+  nutuiSearchbarClearIconSize: "20px",
+  nutuiSearchbarClearIconWidth: "32px",
+  nutuiSearchbarClearIconHeight: "32px",
 };
 
 // 3. 定义定位图标的 SVG Base64 (纯黑色通用图标)
