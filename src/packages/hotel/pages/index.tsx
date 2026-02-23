@@ -1,8 +1,9 @@
-import Taro, { useLoad, usePageScroll } from '@tarojs/taro'
+import Taro, { useLoad, usePageScroll, useRouter } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { RecommendResult } from '@/utils/recommendRooms'
 import { User } from '@nutui/icons-react-taro'
-import { useState, useRef, useEffect } from 'react'
+import { callSupabase } from '@/utils/supabase'
+import { useState } from 'react'
 import { HotelType } from '../../../types/detailPage/hotel'
 import HotelSwiper from '../components/HotelSwiper'
 import HotelInfo from '../components/HotelInfo'
@@ -11,6 +12,7 @@ import BottomBar from '../components/BottomBar'
 import RoomList from '../components/RoomList'
 import StickyTopBar from '../components/StickyTopBar'
 import { RoomRecommendResult } from '../components/RoomrecommendResult'
+import HotelTags from '../components/HotelTags'
 import './index.scss'
 
 interface DateRange {
@@ -46,19 +48,32 @@ const HotelDetail = () => {
   const [recommendResult, setRecommendResult] = useState<RecommendResult | null>(null)
 
   // 获取传送的酒店数据
-  useLoad(() => {
-    const pages = Taro.getCurrentPages()
-    const current = pages[pages.length - 1]
-    const eventChannel = current.getOpenerEventChannel()
-
-    eventChannel.on('acceptDataFromOpenerPage', (res) => {
-      console.log('接收到的数据:', res.data.data[0])
-      setHotel(res.data.data[0])
+  const router = useRouter()
+  useLoad(async () => {
+    const { id } = router.params
+    
+    const { data, error } = await callSupabase({
+      action: "table",
+      table: "hotels",
+      method: "select",
+      query: "*",
+      params: {
+        eq: { id: Number(id) }
+      }
     })
+    
+    if (error) {
+      console.error("获取酒店详情失败:", error)
+      return
+    }
+    if (data?.[0]) {
+      console.log('接收到的房型数据:', data[0])
+      setHotel(data[0])
+    }
   })
 
   // 预处理数据
-  const hotelImages = hotel ? [hotel.image, ...hotel.album] : [];
+  const hotelImages = hotel ? [hotel.image, ...(hotel.album ?? [])] : [];
   const hotelAddress = `${JSON.parse(hotel?.region || '[]')?.filter((item: string) => item !== '市辖区').join('') || ''}${hotel?.address || ''}`;
   const stickyNavHeight = Taro.getMenuButtonBoundingClientRect().bottom + 10  // Hotelinfo sticky 位置
 
@@ -104,7 +119,11 @@ const HotelDetail = () => {
         nameEn={hotel?.name_en}
         starRating={hotel?.star_rating}
         address={hotelAddress}
-      />      
+        phone={hotel?.contact_phone}
+      />
+      
+      {/* 酒店 Tags */}
+      <HotelTags tags={hotel?.tags ?? []} />
 
       {/* 日期 & 入住信息 */}
       <View 

@@ -111,11 +111,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin: 6px 0;
 }
-
-// .room-tag {
-//   font-size: 25px;
-// }
 
 // ========== 价格区域 ==========
 
@@ -224,4 +221,18 @@
 .price-right {
   display: flex;
   align-items: center;
+}
+
+.room-description-wrap {
+  margin-top: 8rpx;
+}
+
+.room-description {
+  font-size: 22rpx;
+  color: #999;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
