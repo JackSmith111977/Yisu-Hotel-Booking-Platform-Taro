@@ -50,11 +50,12 @@ const normalizeCity = (city?: string): string | null => {
   }
 
   if (searchCity.includes("/")) {
-    const parts = searchCity.split("/");
-    const lastPart = parts[parts.length - 1];
-    if (lastPart && lastPart.trim()) {
-      searchCity = lastPart.trim();
-    }
+    // 移除截取逻辑，保留完整路径以便后端进行更灵活的匹配
+    // const parts = searchCity.split("/");
+    // const lastPart = parts[parts.length - 1];
+    // if (lastPart && lastPart.trim()) {
+    //   searchCity = lastPart.trim();
+    // }
   }
 
   return searchCity.trim() || null;
@@ -62,7 +63,7 @@ const normalizeCity = (city?: string): string | null => {
 
 /**
  * 规范化关键词
- * @description 统一 trim + decode
+ * @description 统一 trim + decode，保留原始输入语义
  */
 const normalizeKeyword = (keyword?: string): string | null => {
   if (!keyword?.trim()) return null;
