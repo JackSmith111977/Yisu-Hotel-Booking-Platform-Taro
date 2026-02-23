@@ -5,12 +5,12 @@
   align-items: center;
   padding: 8px 16px;
   background-color: #fff;
-  /* 
+  /*
    * 确保在不同机型上都能正常显示
    * 如果是自定义导航栏，需要额外处理 paddingTop
    */
   position: relative;
-  z-index: 101; 
+  z-index: 101;
 
   .back-icon-wrapper {
     display: flex;
@@ -19,7 +19,7 @@
     width: 32px;
     height: 32px;
     margin-right: 8px;
-    
+
     /* 增加点击热区 */
     position: relative;
     &::after {
@@ -39,19 +39,19 @@
   .search-bar-wrapper {
     flex: 1;
     margin-right: 12px;
-    
+
     /* 覆盖 NutUI SearchBar 默认样式 */
     .nut-searchbar {
       padding: 0;
       background: transparent;
-      
+
       .nut-searchbar__input-bar {
         height: 36px;
         background: #f7f8fa;
         border-radius: 18px;
         border: 1px solid transparent;
         transition: border-color 0.2s;
-        
+
         &:focus-within {
           border-color: #0066FF;
         }
@@ -61,9 +61,27 @@
         font-size: 14px;
         color: #333;
       }
-      
+
       /* 隐藏默认的搜索图标，如果需要自定义 */
       /* .nut-icon { color: #999; } */
+
+      /* 调整清除按钮大小及点击热区 */
+      .nut-searchbar-clear {
+        /* 使用 ConfigProvider 传入的自定义变量 */
+        width: var(--nutui-searchbar-clear-icon-width, 32px) !important;
+        height: var(--nutui-searchbar-clear-icon-height, 32px) !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-right: -8px; /* 修正因增大宽度导致的右边距偏移 */
+
+        .nut-icon {
+          font-size: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+          width: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+          height: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+        }
+      }
     }
   }
 
@@ -73,7 +91,7 @@
     color: #0066FF;
     padding: 4px 8px;
     white-space: nowrap;
-    
+
     &:active {
       opacity: 0.7;
     }

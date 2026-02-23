@@ -99,6 +99,24 @@
       .nut-searchbar__input-bar {
         background: #f7f8fa;
       }
+
+      /* 调整清除按钮大小 */
+      .nut-searchbar-clear {
+        /* 使用 ConfigProvider 传入的自定义变量 */
+        width: var(--nutui-searchbar-clear-icon-width, 32px) !important;
+        height: var(--nutui-searchbar-clear-icon-height, 32px) !important;
+        
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-right: -8px;
+        
+        .nut-icon {
+          font-size: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+          width: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+          height: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+        }
+      }
     }
   }
 }

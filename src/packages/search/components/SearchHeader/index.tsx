@@ -40,6 +40,10 @@ const customTheme = {
   nutuiSearchbarFontSize: "14px",
   nutuiSearchbarInputBorderRadius: "18px",
   nutuiSearchbarInputPadding: "0 0 0 12px",
+  // 自定义变量：通过 ConfigProvider 传递给 CSS
+  nutuiSearchbarClearIconSize: "20px",
+  nutuiSearchbarClearIconWidth: "32px",
+  nutuiSearchbarClearIconHeight: "32px",
 };
 
 /**

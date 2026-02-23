@@ -34,9 +34,16 @@ const addTagTheme = {
   nutuiTagBackgroundColor: "#ffffff",
   nutuiTagColor: "#1989fa",
   nutuiTagBorderColor: "#1989fa",
-  nutuiTagPadding: "8px 6px",
-  nutuiTagFontSize: "14px",
+  nutuiTagPadding: "8px 12px",
+  nutuiTagFontSize: "12px",
   nutuiTagBorderRadius: "8px",
+};
+
+const popupBtnTheme = {
+  nutuiButtonDefaultFontSize: "18px",
+  nutuiButtonDefaultHeight: "36px",
+  nutuiButtonDefaultLineHeight: "36px",
+  nutuiButtonDefaultBorderRadius: "8px",
 };
 
 export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
@@ -75,16 +82,16 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
           nutuiTagBackgroundColor: mainColor,
           nutuiTagColor: "#ffffff",
           nutuiTagBorderColor: mainColor,
-          nutuiTagPadding: "8px 16px",
-          nutuiTagFontSize: "14px",
+          nutuiTagPadding: "10px 20px", // 增大内边距
+          nutuiTagFontSize: "16px", // 增大字体
           nutuiTagBorderRadius: "8px",
         }
       : {
           nutuiTagBackgroundColor: "#ffffff",
           nutuiTagColor: mainColor,
           nutuiTagBorderColor: mainColor,
-          nutuiTagPadding: "8px 16px",
-          nutuiTagFontSize: "14px",
+          nutuiTagPadding: "10px 20px", // 增大内边距
+          nutuiTagFontSize: "16px", // 增大字体
           nutuiTagBorderRadius: "8px",
         };
   };
@@ -161,6 +168,7 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
               textAlign: "center",
               borderBottom: "1px solid #eee",
               fontWeight: "bold",
+              fontSize: "18px", // 增大标题字体
             }}
           >
             添加到首页
@@ -195,31 +203,33 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
           </ScrollView>
 
           {/* 底部按钮 */}
-          <View
-            style={{
-              padding: "16px",
-              display: "flex",
-              gap: "16px",
-              borderTop: "1px solid #eee",
-            }}
-          >
-            <Button
-              block
-              type="default"
-              onClick={() => setShowPopup(false)}
-              style={{ flex: 1 }}
+          <ConfigProvider theme={popupBtnTheme}>
+            <View
+              style={{
+                padding: "16px",
+                display: "flex",
+                gap: "16px",
+                borderTop: "1px solid #eee",
+              }}
             >
-              取消
-            </Button>
-            <Button
-              block
-              type="primary"
-              onClick={handleConfirm}
-              style={{ flex: 1 }}
-            >
-              确认
-            </Button>
-          </View>
+              <Button
+                block
+                type="default"
+                onClick={() => setShowPopup(false)}
+                style={{ flex: 1 }}
+              >
+                取消
+              </Button>
+              <Button
+                block
+                type="primary"
+                onClick={handleConfirm}
+                style={{ flex: 1 }}
+              >
+                确认
+              </Button>
+            </View>
+          </ConfigProvider>
         </View>
       </Popup>
     </View>
