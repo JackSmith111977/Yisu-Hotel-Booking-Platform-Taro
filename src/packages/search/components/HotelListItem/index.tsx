@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo } from "react";
-import { View, Text } from "@tarojs/components";
-import { Image } from "@nutui/nutui-react-taro";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+import { View, Text, Image } from "@tarojs/components";
 import { HotelSearchItem } from "@/types/home/search";
 import "./index.scss";
 
@@ -41,6 +40,16 @@ const HotelListItem = ({
     address,
     is_sold_out,
   } = hotel;
+
+  /**
+   * 图片加载状态管理
+   * @description 解决列表复用时的图片闪烁问题
+   */
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [id, image]);
 
   /**
    * 处理点击事件
@@ -99,12 +108,14 @@ const HotelListItem = ({
     >
       {/* 左侧：酒店封面 */}
       <View className="image-wrapper">
+        {/* 占位符/骨架屏：图片加载前显示 */}
+        {!isLoaded && <View className="image-placeholder skeleton-animate" />}
         <Image
           src={image || DEFAULT_IMAGE}
-          className="hotel-image"
-          radius={8}
+          className={`hotel-image ${isLoaded ? "loaded" : "loading"}`}
           lazyLoad
           mode="aspectFill"
+          onLoad={() => setIsLoaded(true)}
         />
         {/* 售罄遮罩：绝对定位覆盖在图片上 */}
         {is_sold_out && (

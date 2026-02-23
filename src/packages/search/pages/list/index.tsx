@@ -1,5 +1,11 @@
-import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
-import { View, ScrollView } from "@tarojs/components";
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
+import { View, ScrollView, CustomWrapper } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { VirtualList } from "@nutui/nutui-react-taro";
 import { useShallow } from "zustand/react/shallow";
@@ -31,6 +37,12 @@ const FIXED_TOP_HEIGHT = HEADER_HEIGHT + FILTER_HEIGHT;
  */
 const ITEM_DESIGN_HEIGHT = 256;
 const DESIGN_WIDTH = 750;
+
+/**
+ * 虚拟列表启用阈值
+ * @description 当数据量超过此值时启用虚拟列表，否则使用 ScrollView 以获得更好性能
+ */
+const VIRTUAL_LIST_THRESHOLD = 100;
 
 // --- 类型定义 ---
 
@@ -243,35 +255,35 @@ export default function SearchList() {
     (item: VirtualListItem, index: number) => {
       // 类型守卫：判断是否为 Footer
       if ("isFooter" in item && item.isFooter) {
+        // 使用 CustomWrapper 包裹，利用 key={index} 实现 DOM 复用
         return (
-          <ListFooter
-            key="list-footer"
-            loading={item.loading}
-            hasMore={item.hasMore}
-            itemHeight={itemHeight}
-            onLoad={stableLoadMore}
-          />
+          <CustomWrapper key={`cell-${index}`}>
+            <ListFooter
+              loading={item.loading}
+              hasMore={item.hasMore}
+              itemHeight={itemHeight}
+              onLoad={stableLoadMore}
+            />
+          </CustomWrapper>
         );
       }
 
       // 渲染酒店卡片
       const hotelItem = item as HotelSearchItem;
-      // 这里的 key 使用 hotel.id，避免索引 key 导致的渲染问题
-      const uniqueKey = hotelItem.id
-        ? `hotel-${hotelItem.id}`
-        : `index-${index}`;
 
+      // 使用 CustomWrapper 包裹，利用 key={index} 实现 DOM 复用
       return (
-        <View
-          style={{
-            height: `${itemHeight}px`,
-            width: "100%",
-            boxSizing: "border-box",
-          }}
-          key={uniqueKey}
-        >
-          <HotelListItem hotel={hotelItem} onClick={handleHotelClick} />
-        </View>
+        <CustomWrapper key={`cell-${index}`}>
+          <View
+            style={{
+              height: `${itemHeight}px`,
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+          >
+            <HotelListItem hotel={hotelItem} onClick={handleHotelClick} />
+          </View>
+        </CustomWrapper>
       );
     },
     [handleHotelClick, itemHeight, stableLoadMore],
@@ -290,7 +302,7 @@ export default function SearchList() {
 
       const { scrollHeight, scrollTop } = scrollDetail;
       // 阈值：提前 3 屏高度触发加载，提升用户体验
-      const threshold = itemHeight * 3;
+      const threshold = containerHeight * 3;
 
       if (
         scrollHeight - scrollTop - containerHeight < threshold &&
@@ -300,7 +312,7 @@ export default function SearchList() {
         loadMore();
       }
     },
-    [containerHeight, loading, hasMore, loadMore, itemHeight],
+    [containerHeight, loading, hasMore, loadMore],
   );
 
   // --- 6. 渲染内容分发 ---
@@ -339,8 +351,34 @@ export default function SearchList() {
       // 否则走下方的非 normal 渲染逻辑
     }
 
-    // 6.4 正常列表 (VirtualList)
+    // 6.4 正常列表 (VirtualList / ScrollView)
     if (resultType === "normal" && list.length > 0) {
+      // 策略：少量数据 (<100) 使用 ScrollView 以获得原生滚动体验，避免 VirtualList 的空白闪烁
+      // 大量数据使用 VirtualList 以保证性能
+      if (list.length <= VIRTUAL_LIST_THRESHOLD) {
+        return (
+          <ScrollView
+            scrollY
+            style={{ flex: 1, overflow: "hidden" }}
+            className="list-container"
+            onScrollToLower={stableLoadMore}
+            lowerThreshold={containerHeight ? containerHeight * 3 : 2000}
+          >
+            {list.map((hotel) => (
+              <CustomWrapper key={hotel.id}>
+                <HotelListItem hotel={hotel} onClick={handleHotelClick} />
+              </CustomWrapper>
+            ))}
+            <ListFooter
+              loading={loading}
+              hasMore={hasMore}
+              itemHeight={itemHeight}
+              onLoad={stableLoadMore}
+            />
+          </ScrollView>
+        );
+      }
+
       // virtualListData 已通过 useMemo 缓存
       return (
         <View
@@ -354,6 +392,7 @@ export default function SearchList() {
             itemHeight={itemHeight}
             containerHeight={containerHeight}
             onScroll={handleVirtualScroll}
+            overscan={10}
           />
         </View>
       );
@@ -370,6 +409,8 @@ export default function SearchList() {
           scrollY
           className="search-scroll-view"
           style={{ flex: 1, overflow: "hidden" }} // 确保 ScrollView 撑满剩余空间
+          onScrollToLower={stableLoadMore}
+          lowerThreshold={containerHeight ? containerHeight * 3 : 2000}
         >
           <View className="list-container">
             {/* Mixed 状态：先展示搜索结果 */}
@@ -403,6 +444,14 @@ export default function SearchList() {
                 onClick={handleHotelClick}
               />
             ))}
+
+            {/* 底部加载状态 */}
+            <ListFooter
+              loading={loading}
+              hasMore={hasMore}
+              itemHeight={itemHeight}
+              onLoad={stableLoadMore}
+            />
           </View>
         </ScrollView>
       );
