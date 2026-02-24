@@ -31,6 +31,11 @@ function toQueryString(params?: RouteParams): string {
     // 过滤掉值为 null 或 undefined 的键值对，保留 0
     if (value !== null && value !== undefined) {
       // encodeURIComponent 对查询字符串进行编码，确保特殊字符被正确处理，防止截断
+      // 修改：对日期等不包含特殊字符的参数，可以不进行 encodeURIComponent，或者在解析侧统一 decode
+      // 为了兼容性和避免双重编码问题，建议统一编码，但在解析侧必须解码
+      // 用户反馈的问题是“以url编码的形式存在”，可能是因为解析侧没有 decode
+      // 或者在 navigateTo 时做了编码，而 Taro.navigateTo 内部可能又做了一次处理（虽然 Taro 通常不会）
+      // 让我们检查一下 useSearchInitialization 中的解析逻辑
       queryParts.push(`${key}=${encodeURIComponent(String(value))}`);
     }
   });

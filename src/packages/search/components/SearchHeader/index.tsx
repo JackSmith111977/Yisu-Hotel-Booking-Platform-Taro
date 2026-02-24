@@ -1,138 +1,309 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, Text } from "@tarojs/components";
-import { SearchBar, ConfigProvider } from "@nutui/nutui-react-taro";
-import { ArrowLeft } from "@nutui/icons-react-taro";
+import {
+  SearchBar,
+  ConfigProvider,
+  Calendar,
+  Cascader,
+  Popup,
+} from "@nutui/nutui-react-taro";
+import { ArrowLeft, ArrowDown } from "@nutui/icons-react-taro";
 import Taro from "@tarojs/taro";
+import dayjs from "dayjs";
+import { useSearchStore } from "@/store/searchStore";
+import { fetchDistricts } from "@/utils/map";
 import "./index.scss";
 
-/**
- * SearchHeader Props 接口定义
- * @description 定义组件输入的参数，确保类型安全
- */
 interface SearchHeaderProps {
-  /**
-   * 搜索关键词初始值
-   * @description 用于初始化搜索框内容
-   */
-  keyword: string;
-
-  /**
-   * 搜索触发回调
-   * @param newKeyword 用户输入的关键词
-   */
-  onSearch: (newKeyword: string) => void;
-
-  /**
-   * 返回按钮点击回调
-   * @description 默认行为是 Taro.navigateBack()
-   */
-  onBack?: () => void;
+  keyword?: string; // 保留 props 兼容性，虽然主要依赖 store
+  onSearch?: (val: string) => void;
 }
 
-/**
- * 自定义主题配置
- * @description 覆盖 NutUI SearchBar 的部分默认样式
- */
+// 选项数据接口
+interface AddressOption {
+  value: string | number;
+  text: string;
+  children?: AddressOption[];
+}
+
+// 原始行政区划数据接口
+interface DistrictRawItem {
+  id: string | number;
+  fullname: string;
+  cidx?: [number, number];
+}
+
+// 自定义主题
 const customTheme = {
+  // 搜索框相关
   nutuiSearchbarPadding: "0",
   nutuiSearchbarInputBackground: "#f7f8fa",
   nutuiSearchbarInputHeight: "36px",
   nutuiSearchbarFontSize: "14px",
   nutuiSearchbarInputBorderRadius: "18px",
-  nutuiSearchbarInputPadding: "0 0 0 12px",
-  // 自定义变量：通过 ConfigProvider 传递给 CSS
+  // 增加清空按钮大小设置，与 HomeHeader 保持一致
   nutuiSearchbarClearIconSize: "20px",
   nutuiSearchbarClearIconWidth: "32px",
   nutuiSearchbarClearIconHeight: "32px",
+
+  // 地址选择相关 (同步 HomeHeader)
+  nutuiPopupTitleFontSize: "16px",
+  nutuiTabsTitlesFontSize: "12px",
+  nutuiCascaderItemFontSize: "16px",
+  nutuiCascaderItemHeight: "40px",
+  nutuiCascaderPaneHeight: "400px",
 };
 
 /**
- * 搜索头部组件
- * @description
- * 用于搜索页面的顶部导航栏，包含返回按钮、搜索输入框和搜索确认按钮。
- * 内部维护输入状态，支持受控与非受控模式的混合使用。
+ * 将腾讯地图行政区划数据转换为 NutUI Address 组件需要的级联数据
+ * @description 复用主页逻辑，保持一致
  */
-const SearchHeader: React.FC<SearchHeaderProps> = ({
-  keyword,
-  onSearch,
-  onBack,
-}) => {
-  // 内部维护输入框状态
-  const [inputValue, setInputValue] = useState(keyword);
+const convertToTree = (data: DistrictRawItem[][]): AddressOption[] => {
+  if (!data || data.length < 2) return [];
+  const [provinces, cities, districts] = data;
 
-  // 监听外部 keyword 变化，同步更新内部状态 (处理外部重置或 URL 参数变化)
-  useEffect(() => {
-    setInputValue(keyword);
-  }, [keyword]);
+  return provinces.map((prov) => {
+    let cityChildren: AddressOption[] = [];
+    if (prov.cidx) {
+      const [start, end] = prov.cidx;
+      if (cities && start >= 0 && end < cities.length) {
+        const citySlice = cities.slice(start, end + 1);
 
-  // 处理输入变化
-  const handleChange = useCallback((val: string) => {
-    setInputValue(val);
-  }, []);
+        cityChildren = citySlice.map((city: DistrictRawItem) => {
+          // 这里可以根据需求决定是否需要第三级（区县）
+          // HomeHeader 中包含了区县，为了保持一致性，这里也加上
+          let districtChildren: AddressOption[] = [];
+          if (city.cidx && districts) {
+            const [dStart, dEnd] = city.cidx;
+            if (districts && dStart >= 0 && dEnd < districts.length) {
+              const distSlice = districts.slice(dStart, dEnd + 1);
+              districtChildren = distSlice.map((dist) => ({
+                value: dist.id,
+                text: dist.fullname,
+              }));
+            }
+          }
 
-  // 处理搜索触发 (点击右侧按钮或键盘确认)
-  const handleSearchAction = useCallback(() => {
-    // 这里的 trim() 是为了防止用户输入纯空格
-    const trimmedValue = inputValue.trim();
-    // 即使是空字符串也允许搜索（代表清除搜索条件），具体业务由父组件决定
-    onSearch(trimmedValue);
-  }, [inputValue, onSearch]);
-
-  // 处理返回点击
-  const handleBackAction = useCallback(() => {
-    if (onBack) {
-      onBack();
-    } else {
-      // 默认返回上一页
-      const pages = Taro.getCurrentPages();
-      if (pages.length > 1) {
-        Taro.navigateBack();
-      } else {
-        // 如果没有上一页，通常跳转到首页
-        Taro.switchTab({ url: "/pages/index/index" });
+          return {
+            value: city.id,
+            text: city.fullname,
+            children:
+              districtChildren.length > 0 ? districtChildren : undefined,
+          };
+        });
       }
     }
-  }, [onBack]);
+    return {
+      value: prov.id,
+      text: prov.fullname,
+      children: cityChildren.length > 0 ? cityChildren : undefined,
+    };
+  });
+};
+
+const SearchHeader: React.FC<SearchHeaderProps> = ({ onSearch }) => {
+  // 1. 数据绑定：从 store 获取数据
+  const { params, setParams } = useSearchStore();
+  const { city, checkInDate, checkOutDate, keyword } = params;
+
+  // 2. 本地状态
+  const [showCitySelector, setShowCitySelector] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [cityOptions, setCityOptions] = useState<AddressOption[]>([]);
+  // 级联选择器的值，由于 store 只存了 city 名称，这里如果不匹配 id 可能无法回显选中态
+  // 简化处理：仅用于展示选项，选中后更新 store
+  const [cascaderValue, setCascaderValue] = useState<(string | number)[]>([]);
+
+  // 3. 初始化加载行政区划数据
+  useEffect(() => {
+    const loadDistricts = async () => {
+      const data = await fetchDistricts();
+      if (data) {
+        const options = convertToTree(data);
+        setCityOptions(options);
+      }
+    };
+    loadDistricts();
+  }, []);
+
+  // 4. 计算天数
+  const nights = useMemo(() => {
+    return dayjs(checkOutDate).diff(dayjs(checkInDate), "day");
+  }, [checkInDate, checkOutDate]);
+
+  // 5. 交互处理
+  const handleBackAction = () => {
+    Taro.navigateBack();
+  };
+
+  const handleSearchAction = () => {
+    if (onSearch) {
+      onSearch(keyword);
+    }
+  };
+
+  const handleKeywordChange = (val: string) => {
+    setParams({ keyword: val });
+  };
+
+  const handleDateConfirm = (param: unknown) => {
+    console.log("SearchHeader Calendar confirm param:", JSON.stringify(param));
+
+    try {
+      if (Array.isArray(param) && param.length >= 2) {
+        const startItem = param[0];
+        const endItem = param[1];
+
+        // 兼容处理：startItem 可能是 string 或 [year, month, day, dateStr, ...]
+        // NutUI Calendar 在不同版本或配置下返回格式不同，这里做防御性解析
+        const start = Array.isArray(startItem)
+          ? String(startItem[3])
+          : String(startItem);
+        const end = Array.isArray(endItem)
+          ? String(endItem[3])
+          : String(endItem);
+
+        if (start && end && start !== "undefined" && end !== "undefined") {
+          // 格式化日期确保一致性
+          const formattedStart = dayjs(start).format("YYYY-MM-DD");
+          const formattedEnd = dayjs(end).format("YYYY-MM-DD");
+
+          setParams({
+            checkInDate: formattedStart,
+            checkOutDate: formattedEnd,
+          });
+        } else {
+          console.warn("SearchHeader 解析出的日期无效:", start, end);
+        }
+      } else {
+        console.warn("SearchHeader 日期参数格式不符合预期:", param);
+      }
+    } catch (error) {
+      console.error("SearchHeader 处理日期确认时发生错误:", error);
+    } finally {
+      // 无论成功与否都关闭弹窗
+      setShowCalendar(false);
+    }
+  };
+
+  const handleCityChange = (value: (string | number)[], options: any[]) => {
+    // 获取选中的选项文本
+    if (options && options.length > 0) {
+      // 找到层级中的城市节点（通常是第二级，但为了通用性，我们取倒数第二个或根据层级判断）
+      // 在 convertToTree 中，结构是 省 -> 市 -> 区
+      // 如果选中了区，options 长度为 3；如果只选中市，长度为 2
+
+      // 策略：优先取城市级别的名称。
+      // 如果 options 长度 >= 2，则 options[1] 是城市
+      let selectedCity = "";
+
+      if (options.length >= 2) {
+        selectedCity = options[1].text;
+      } else {
+        // 兜底：取最后一个
+        selectedCity = options[options.length - 1].text;
+      }
+
+      setParams({ city: selectedCity });
+      setCascaderValue(value);
+    }
+    setShowCitySelector(false);
+  };
+
+  // 格式化日期显示 (MM.DD)
+  const formatDate = (dateStr: string) => {
+    return dayjs(dateStr).format("MM.DD");
+  };
 
   return (
     <View className="search-header-container">
-      {/* 左侧：返回按钮 */}
-      <View
-        className="back-icon-wrapper"
-        onClick={handleBackAction}
-        aria-role="button"
-        aria-label="返回"
-      >
-        <ArrowLeft size={18} color="#333" />
-      </View>
+      <ConfigProvider theme={customTheme}>
+        {/* 第一行：城市与日期 */}
+        <View className="header-row-top">
+          {/* 城市选择 */}
+          <View
+            className="city-selector"
+            onClick={() => setShowCitySelector(true)}
+          >
+            <Text className="city-text">{city || "选择城市"}</Text>
+            <ArrowDown size={12} color="#333" />
+          </View>
 
-      {/* 中间：搜索框 */}
-      <View className="search-bar-wrapper">
-        <ConfigProvider theme={customTheme}>
-          <SearchBar
-            value={inputValue}
-            onChange={handleChange}
-            onSearch={handleSearchAction} // 键盘回车触发
-            placeholder="搜索酒店/地名/关键词"
-            shape="round"
-            clearable
-            // 去除默认的“取消”文字按钮，使用自定义的“搜索”按钮
-          />
-        </ConfigProvider>
-      </View>
+          {/* 日期展示 */}
+          <View className="date-display" onClick={() => setShowCalendar(true)}>
+            <Text className="date-text">
+              {formatDate(checkInDate)} - {formatDate(checkOutDate)}
+            </Text>
+            <Text className="nights-text">{nights}晚</Text>
+            <ArrowDown size={10} color="#999" style={{ marginLeft: 4 }} />
+          </View>
+        </View>
 
-      {/* 右侧：搜索按钮 */}
-      <View
-        className="search-action-btn"
-        onClick={handleSearchAction}
-        aria-role="button"
-        aria-label="执行搜索"
-      >
-        <Text>搜索</Text>
-      </View>
+        {/* 第二行：搜索框 */}
+        <View className="header-row-bottom">
+          {/* 左侧：返回按钮 */}
+          <View className="back-icon-wrapper" onClick={handleBackAction}>
+            <ArrowLeft size={18} color="#333" />
+          </View>
+
+          {/* 中间：搜索框 */}
+          <View className="search-bar-wrapper">
+            <SearchBar
+              value={keyword}
+              onChange={handleKeywordChange}
+              onSearch={handleSearchAction}
+              placeholder="搜索酒店/地名/关键词"
+              shape="round"
+              clearable
+            />
+          </View>
+
+          {/* 右侧：搜索按钮 */}
+          <View className="search-action-btn" onClick={handleSearchAction}>
+            <Text>搜索</Text>
+          </View>
+        </View>
+
+        {/* 日期选择弹窗 */}
+        <Calendar
+          visible={showCalendar}
+          defaultValue={[checkInDate, checkOutDate]}
+          type="range"
+          startDate={checkInDate}
+          onClose={() => setShowCalendar(false)}
+          onConfirm={(param: any) => handleDateConfirm(param)}
+        />
+
+        {/* 城市选择弹窗 - 复用 HomeHeader 样式结构 */}
+        <Popup
+          visible={showCitySelector}
+          position="bottom"
+          round
+          closeable
+          onClose={() => setShowCitySelector(false)}
+          title="选择城市"
+          lockScroll={false}
+          destroyOnClose
+          style={{ height: "60vh" }}
+        >
+          <View style={{ height: "100%", width: "100%", overflow: "hidden" }}>
+            <Cascader
+              visible={showCitySelector}
+              options={cityOptions}
+              value={cascaderValue}
+              title="选择城市"
+              closeable={false} // 使用 Popup 的关闭按钮
+              onClose={() => setShowCitySelector(false)}
+              onChange={handleCityChange}
+              popupProps={{
+                lockScroll: false,
+              }}
+            />
+          </View>
+        </Popup>
+      </ConfigProvider>
     </View>
   );
 };
 
-// 使用 React.memo 优化性能
-export default React.memo(SearchHeader);
+export default SearchHeader;
