@@ -269,7 +269,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ onSearch }) => {
           visible={showCalendar}
           defaultValue={[checkInDate, checkOutDate]}
           type="range"
-          startDate={checkInDate}
+          startDate={dayjs().format("YYYY-MM-DD")}
           onClose={() => setShowCalendar(false)}
           onConfirm={(param: any) => handleDateConfirm(param)}
         />
