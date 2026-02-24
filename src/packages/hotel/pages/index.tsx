@@ -1,8 +1,9 @@
-import Taro, { useLoad, usePageScroll, useRouter } from '@tarojs/taro'
+import Taro, { useLoad, usePageScroll, useRouter, useDidShow } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { RecommendResult } from '@/utils/recommendRooms'
 import { User } from '@nutui/icons-react-taro'
 import { callSupabase } from '@/utils/supabase'
+import { useBookingStore } from '@/store/bookingStore'
 import { useState } from 'react'
 import { HotelType } from '../../../types/detailPage/hotel'
 import HotelSwiper from '../components/HotelSwiper'
@@ -13,6 +14,7 @@ import RoomList from '../components/RoomList'
 import StickyTopBar from '../components/StickyTopBar'
 import { RoomRecommendResult } from '../components/RoomrecommendResult'
 import HotelTags from '../components/HotelTags'
+
 import './index.scss'
 
 interface DateRange {
@@ -46,6 +48,7 @@ const HotelDetail = () => {
   const [showBottomBar, setShowBottomBar] = useState(true)
   const [lowestPrice, setLowestPrice] = useState(0);
   const [recommendResult, setRecommendResult] = useState<RecommendResult | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0) // 刷新roomlist数据
 
   // 获取传送的酒店数据
   const router = useRouter()
@@ -105,6 +108,14 @@ const HotelDetail = () => {
     setShowTopBar(scrollTop > 250)
   })
 
+  const { clearItems } = useBookingStore()
+
+  useDidShow(() => {
+    setRefreshKey(k => k + 1) // 刷新roomlist
+    setRecommendResult(null)  // 清空推荐，用户重新选日期/人数触发
+    clearItems()  // 刷新选择的房间
+  })  
+
   return (
     <View className='hotel-detail'>
       {/* 酒店信息吸顶 */}
@@ -142,26 +153,27 @@ const HotelDetail = () => {
         </View>
       </View>
       
-      {recommendResult && (
+      {recommendResult && (roomGuest.rooms > 1 || roomGuest.adults > 1 || roomGuest.children > 0) ? (
         <RoomRecommendResult 
           result={recommendResult} 
           nights={dateRange.nights}
           adultCount={roomGuest.adults}
           childCount={roomGuest.children}
         />
-      )}
+      ) : null}
 
       {/* 房型列表 */}
       {/* dateRange={dateRange} roomGuest={roomGuest} */}
-      {recommendResult && (
+      {recommendResult && (roomGuest.adults > 1 || roomGuest.children > 0 || roomGuest.rooms > 1) ? (
         <View className='prompt'>
           <User className='prompt-icon' />
           <Text >其余可供选择的房型</Text>
           {/* <Text >{`不满足"${roomGuest.adults}名成人, ${roomGuest.children}名儿童"的房型`}</Text> */}
         </View>        
-      )}
+      ) : null}
 
       <RoomList 
+        key={refreshKey}
         hotelId={hotel?.id} 
         checkInDate={toStr(dateRange.start)}
         checkOutDate={toStr(dateRange.end)}
