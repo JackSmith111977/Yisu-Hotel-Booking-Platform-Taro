@@ -4,7 +4,7 @@ import { View, Text } from '@tarojs/components'
 import { callSupabase } from "@/utils/supabase";
 import { RoomGuest } from '@/types/detailPage/RoomList';
 import { recommendRooms, RecommendResult } from '@/utils/recommendRooms'
-
+import { useSearchStore } from '@/store/searchStore';
 import {
   Calendar,
   Popup,
@@ -12,10 +12,8 @@ import {
   Divider,
   Button,
 } from '@nutui/nutui-react-taro'
-import { RoomRecommendResult } from '../RoomrecommendResult';
 import './index.scss'
 import Counter from '../Counter'
-
 
 /* ========== 工具函数 ========== */
 const formatDate = (d: Date) => `${d.getMonth() + 1}月${d.getDate()}日`
@@ -39,8 +37,6 @@ const diffDays = (s: Date, e: Date) =>
 const toStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-const MAX_PER_ROOM = 3;   // 预设每间最大人数
-
 /* ========== 主组件 ========== */
 interface BookingDateBarProps {
   hotelId: number
@@ -51,12 +47,15 @@ interface BookingDateBarProps {
 
 const BookingDateBar = ({ hotelId, onDateChange, onRoomGuestChange, onRecommendResult }: BookingDateBarProps) => {
   /* ---- 日期 ---- */
-  const [startDate, setStartDate] = useState<Date>(() => new Date())
-  const [endDate, setEndDate] = useState<Date>(() => {
-    const d = new Date()
-    d.setDate(d.getDate() + 1)
-    return d
-  })
+  // const [startDate, setStartDate] = useState<Date>(() => new Date())
+  // const [endDate, setEndDate] = useState<Date>(() => {
+  //   const d = new Date()
+  //   d.setDate(d.getDate() + 1)
+  //   return d
+  // })
+  const params = useSearchStore((state) => state.params)
+  const [startDate, setStartDate] = useState<Date>(() => new Date(params.checkInDate))
+  const [endDate, setEndDate] = useState<Date>(() => new Date(params.checkOutDate))
   const [calendarVisible, setCalendarVisible] = useState(false)
 
   /* ---- 房间人数 ---- */
@@ -79,11 +78,11 @@ const BookingDateBar = ({ hotelId, onDateChange, onRoomGuestChange, onRecommendR
   const nights = useMemo(() => diffDays(startDate, endDate), [startDate, endDate])
 
   const calendarStart = useMemo(() => toStr(new Date()), [])
-  const [calendarEnd, setCalendarEnd] = useState<string>(() => {
-    const d = new Date()
-    d.setDate(d.getDate() + 30)   // 默认显示三十天
-    return toStr(d)
-  })
+  // const [calendarEnd, setCalendarEnd] = useState<string>(() => {
+  //   const d = new Date()
+  //   d.setDate(d.getDate() + 30)   // 默认显示三十天
+  //   return toStr(d)
+  // })
   const calendarDefault = useMemo(() => {
     return [toStr(startDate), toStr(endDate)];
   }, [startDate, endDate])
@@ -132,20 +131,20 @@ const BookingDateBar = ({ hotelId, onDateChange, onRoomGuestChange, onRecommendR
     setCalendarVisible(false)
   }, [onDateChange, triggerRecommend, roomGuest])
 
-  useEffect(() => {
-    const fetchMaxDate = async () => {
-      const res = await callSupabase({
-        action: 'rpc',
-        rpcName: 'get_max_availability_date',
-      })
+  // useEffect(() => {
+  //   const fetchMaxDate = async () => {
+  //     const res = await callSupabase({
+  //       action: 'rpc',
+  //       rpcName: 'get_max_availability_date',
+  //     })
   
-      if (!res.error && res.data) {
-        setCalendarEnd(res.data)
-      }
-    }
+  //     if (!res.error && res.data) {
+  //       setCalendarEnd(res.data)
+  //     }
+  //   }
   
-    fetchMaxDate()
-  }, [])
+  //   fetchMaxDate()
+  // }, [])
 
   /* ---- 房间弹窗回调 ---- */
   const openPopup = useCallback(() => {
@@ -228,7 +227,7 @@ const BookingDateBar = ({ hotelId, onDateChange, onRoomGuestChange, onRecommendR
         defaultValue={calendarDefault}
         type='range'
         startDate={calendarStart}
-        endDate={calendarEnd}
+        // endDate={calendarEnd}
         onClose={() => setCalendarVisible(false)}
         onConfirm={onCalendarConfirm}
         renderBottomButton={() => (
