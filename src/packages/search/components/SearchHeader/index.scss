@@ -1,71 +1,69 @@
-@import '@nutui/nutui-react-taro/dist/style.css';
-
 .search-header-container {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   padding: 8px 16px;
   background-color: #fff;
-  /*
-   * 确保在不同机型上都能正常显示
-   * 如果是自定义导航栏，需要额外处理 paddingTop
-   */
-  position: relative;
-  z-index: 101;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 
-  .back-icon-wrapper {
+  .header-row-top {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    margin-right: 8px;
+    padding-bottom: 8px;
 
-    /* 增加点击热区 */
-    position: relative;
-    &::after {
-      content: '';
-      position: absolute;
-      top: -10px;
-      bottom: -10px;
-      left: -10px;
-      right: -10px;
+    .city-selector {
+      display: flex;
+      align-items: center;
+      max-width: 40%;
+
+      .city-text {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-right: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
 
-    &:active {
-      opacity: 0.7;
+    .date-display {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      justify-content: flex-end;
+
+      .date-text {
+        font-size: 24px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .nights-text {
+        font-size: 18px;
+        color: #666;
+        margin-left: 6px;
+      }
     }
   }
 
-  .search-bar-wrapper {
-    flex: 1;
-    margin-right: 12px;
+  .header-row-bottom {
+    display: flex;
+    align-items: center;
+    width: 100%;
 
-    /* 覆盖 NutUI SearchBar 默认样式 */
-    .nut-searchbar {
-      padding: 0;
-      background: transparent;
+    .back-icon-wrapper {
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+    }
 
-      .nut-searchbar__input-bar {
-        height: 36px;
-        background: #f7f8fa;
-        border-radius: 18px;
-        border: 1px solid transparent;
-        transition: border-color 0.2s;
+    .search-bar-wrapper {
+      flex: 1;
 
-        &:focus-within {
-          border-color: #0066FF;
-        }
-      }
-
-      .nut-searchbar__input {
-        font-size: 14px;
-        color: #333;
-      }
-
-      /* 隐藏默认的搜索图标，如果需要自定义 */
-      /* .nut-icon { color: #999; } */
-
-      /* 调整清除按钮大小及点击热区 */
+      /* 调整清除按钮大小 */
       .nut-searchbar-clear {
         /* 使用 ConfigProvider 传入的自定义变量 */
         width: var(--nutui-searchbar-clear-icon-width, 32px) !important;
@@ -74,7 +72,7 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        margin-right: -8px; /* 修正因增大宽度导致的右边距偏移 */
+        margin-right: -8px;
 
         .nut-icon {
           font-size: var(--nutui-searchbar-clear-icon-size, 20px) !important;
@@ -83,17 +81,12 @@
         }
       }
     }
-  }
 
-  .search-action-btn {
-    font-size: 16px;
-    font-weight: 500;
-    color: #0066FF;
-    padding: 4px 8px;
-    white-space: nowrap;
-
-    &:active {
-      opacity: 0.7;
+    .search-action-btn {
+      margin-left: 12px;
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
     }
   }
 }

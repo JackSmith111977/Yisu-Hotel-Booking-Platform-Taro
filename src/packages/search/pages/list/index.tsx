@@ -1,5 +1,11 @@
-import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
-import { View, ScrollView } from "@tarojs/components";
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
+import { View, ScrollView, CustomWrapper } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { VirtualList } from "@nutui/nutui-react-taro";
 import { useShallow } from "zustand/react/shallow";
@@ -11,18 +17,21 @@ import HotelListItem from "../../components/HotelListItem";
 import SkeletonLoader from "../../components/SkeletonLoader";
 import SearchHeader from "../../components/SearchHeader";
 import FilterSortBar from "../../components/FilterSortBar";
+import FilterDrawer from "../../components/FilterDrawer";
 import EmptyState from "../../components/EmptyState";
 import RecommendationDivider from "../../components/RecommendationDivider";
 import "./index.scss";
+
+import { useTagStore } from "@/store/tagStore";
 
 // --- 常量定义 ---
 
 /**
  * 顶部固定区域高度 (px)
- * SearchHeader (52px) + FilterSortBar (44px)
- * @note 如果样式发生变更，需同步更新此常量，或改为动态获取(但在小程序中动态获取会有延迟)
+ * SearchHeader (~92px) + FilterSortBar (44px)
+ * @note 如果样式发生变更，需同步更新此常量
  */
-const HEADER_HEIGHT = 52;
+const HEADER_HEIGHT = 92;
 const FILTER_HEIGHT = 44;
 const FIXED_TOP_HEIGHT = HEADER_HEIGHT + FILTER_HEIGHT;
 
@@ -31,6 +40,12 @@ const FIXED_TOP_HEIGHT = HEADER_HEIGHT + FILTER_HEIGHT;
  */
 const ITEM_DESIGN_HEIGHT = 256;
 const DESIGN_WIDTH = 750;
+
+/**
+ * 虚拟列表启用阈值
+ * @description 当数据量超过此值时启用虚拟列表，否则使用 ScrollView 以获得更好性能
+ */
+const VIRTUAL_LIST_THRESHOLD = 100;
 
 // --- 类型定义 ---
 
@@ -114,8 +129,32 @@ export default function SearchList() {
   const initialized = useSearchInitialization();
 
   // 全局状态：搜索参数
-  const params = useSearchStore(useShallow((state) => state.params));
-  const setParams = useSearchStore((state) => state.setParams);
+  const { params, setParams } = useSearchStore(
+    useShallow((state) => ({
+      params: state.params,
+      setParams: state.setParams,
+    })),
+  );
+
+  // 标签 Store
+  const { tags: allTags, fetchTags } = useTagStore(
+    useShallow((state) => ({
+      tags: state.tags,
+      fetchTags: state.fetchTags,
+    })),
+  );
+
+  // 初始化加载标签
+  useEffect(() => {
+    if (allTags.length === 0) {
+      fetchTags();
+    }
+  }, [allTags.length, fetchTags]);
+
+  // 计算可用的随机标签（仅 tag 名称）
+  const availableTags = useMemo(() => {
+    return allTags.map((t) => t.name);
+  }, [allTags]);
 
   // --- 2. 核心：计算容器高度和列表项高度 (Fix P2 Defect) ---
 
@@ -144,6 +183,9 @@ export default function SearchList() {
   // 状态初始化
   const [layoutInfo, setLayoutInfo] = useState(calculateLayout);
   const { itemHeight, containerHeight } = layoutInfo;
+
+  // 筛选 Drawer 控制状态
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // 监听窗口大小变化（如旋转屏幕、折叠屏展开），动态更新高度
   useEffect(() => {
@@ -192,15 +234,44 @@ export default function SearchList() {
   );
 
   /**
-   * 排序更新
-   * 依赖项: [setParams] -> Store action 引用稳定
+   * 处理排序变更
+   * @param sort 新的排序方式
    */
   const handleSortChange = useCallback(
-    (val: string) => {
-      setParams({ sort: val as HotelSearchSort });
+    (sort: HotelSearchSort) => {
+      setParams({ sort });
+      // 切换排序后滚动回顶部
+      Taro.pageScrollTo({ scrollTop: 0, duration: 300 });
     },
     [setParams],
   );
+
+  /**
+   * 处理标签变更 (FilterSortBar Quick Chips)
+   * @param tags 新的标签数组
+   */
+  const handleTagChange = useCallback(
+    (tags: string[]) => {
+      setParams({ tags });
+      // 筛选条件变化，滚动回顶部
+      Taro.pageScrollTo({ scrollTop: 0, duration: 300 });
+    },
+    [setParams],
+  );
+
+  /**
+   * 打开全筛选面板
+   */
+  const handleOpenFilter = useCallback(() => {
+    setIsFilterOpen(true);
+  }, []);
+
+  /**
+   * 关闭全筛选面板
+   */
+  const handleCloseFilter = useCallback(() => {
+    setIsFilterOpen(false);
+  }, []);
 
   // --- 5. 虚拟列表数据缓存 ---
 
@@ -243,35 +314,35 @@ export default function SearchList() {
     (item: VirtualListItem, index: number) => {
       // 类型守卫：判断是否为 Footer
       if ("isFooter" in item && item.isFooter) {
+        // 使用 CustomWrapper 包裹，利用 key={index} 实现 DOM 复用
         return (
-          <ListFooter
-            key="list-footer"
-            loading={item.loading}
-            hasMore={item.hasMore}
-            itemHeight={itemHeight}
-            onLoad={stableLoadMore}
-          />
+          <CustomWrapper key={`cell-${index}`}>
+            <ListFooter
+              loading={item.loading}
+              hasMore={item.hasMore}
+              itemHeight={itemHeight}
+              onLoad={stableLoadMore}
+            />
+          </CustomWrapper>
         );
       }
 
       // 渲染酒店卡片
       const hotelItem = item as HotelSearchItem;
-      // 这里的 key 使用 hotel.id，避免索引 key 导致的渲染问题
-      const uniqueKey = hotelItem.id
-        ? `hotel-${hotelItem.id}`
-        : `index-${index}`;
 
+      // 使用 CustomWrapper 包裹，利用 key={index} 实现 DOM 复用
       return (
-        <View
-          style={{
-            height: `${itemHeight}px`,
-            width: "100%",
-            boxSizing: "border-box",
-          }}
-          key={uniqueKey}
-        >
-          <HotelListItem hotel={hotelItem} onClick={handleHotelClick} />
-        </View>
+        <CustomWrapper key={`cell-${index}`}>
+          <View
+            style={{
+              height: `${itemHeight}px`,
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+          >
+            <HotelListItem hotel={hotelItem} onClick={handleHotelClick} />
+          </View>
+        </CustomWrapper>
       );
     },
     [handleHotelClick, itemHeight, stableLoadMore],
@@ -290,7 +361,7 @@ export default function SearchList() {
 
       const { scrollHeight, scrollTop } = scrollDetail;
       // 阈值：提前 3 屏高度触发加载，提升用户体验
-      const threshold = itemHeight * 3;
+      const threshold = containerHeight * 3;
 
       if (
         scrollHeight - scrollTop - containerHeight < threshold &&
@@ -300,7 +371,7 @@ export default function SearchList() {
         loadMore();
       }
     },
-    [containerHeight, loading, hasMore, loadMore, itemHeight],
+    [containerHeight, loading, hasMore, loadMore],
   );
 
   // --- 6. 渲染内容分发 ---
@@ -339,8 +410,34 @@ export default function SearchList() {
       // 否则走下方的非 normal 渲染逻辑
     }
 
-    // 6.4 正常列表 (VirtualList)
+    // 6.4 正常列表 (VirtualList / ScrollView)
     if (resultType === "normal" && list.length > 0) {
+      // 策略：少量数据 (<100) 使用 ScrollView 以获得原生滚动体验，避免 VirtualList 的空白闪烁
+      // 大量数据使用 VirtualList 以保证性能
+      if (list.length <= VIRTUAL_LIST_THRESHOLD) {
+        return (
+          <ScrollView
+            scrollY
+            style={{ flex: 1, overflow: "hidden" }}
+            className="list-container"
+            onScrollToLower={stableLoadMore}
+            lowerThreshold={containerHeight ? containerHeight * 3 : 2000}
+          >
+            {list.map((hotel) => (
+              <CustomWrapper key={hotel.id}>
+                <HotelListItem hotel={hotel} onClick={handleHotelClick} />
+              </CustomWrapper>
+            ))}
+            <ListFooter
+              loading={loading}
+              hasMore={hasMore}
+              itemHeight={itemHeight}
+              onLoad={stableLoadMore}
+            />
+          </ScrollView>
+        );
+      }
+
       // virtualListData 已通过 useMemo 缓存
       return (
         <View
@@ -354,6 +451,7 @@ export default function SearchList() {
             itemHeight={itemHeight}
             containerHeight={containerHeight}
             onScroll={handleVirtualScroll}
+            overscan={10}
           />
         </View>
       );
@@ -370,6 +468,8 @@ export default function SearchList() {
           scrollY
           className="search-scroll-view"
           style={{ flex: 1, overflow: "hidden" }} // 确保 ScrollView 撑满剩余空间
+          onScrollToLower={stableLoadMore}
+          lowerThreshold={containerHeight ? containerHeight * 3 : 2000}
         >
           <View className="list-container">
             {/* Mixed 状态：先展示搜索结果 */}
@@ -403,6 +503,14 @@ export default function SearchList() {
                 onClick={handleHotelClick}
               />
             ))}
+
+            {/* 底部加载状态 */}
+            <ListFooter
+              loading={loading}
+              hasMore={hasMore}
+              itemHeight={itemHeight}
+              onLoad={stableLoadMore}
+            />
           </View>
         </ScrollView>
       );
@@ -423,19 +531,28 @@ export default function SearchList() {
 
   return (
     <View className="search-list-page">
-      {/* 顶部固定区域 */}
-      <SearchHeader
-        keyword={params.keyword}
-        onSearch={handleSearch}
-        onBack={() => Taro.navigateBack()}
-      />
-      <FilterSortBar
-        currentSort={params.sort || "recommended"}
-        onSortChange={handleSortChange}
-      />
+      {/* 顶部固定区域：搜索栏 + 筛选栏 */}
+      <View className="fixed-header-wrapper">
+        <SearchHeader keyword={params.keyword} onSearch={handleSearch} />
+        <FilterSortBar
+          currentSort={params.sort || "recommended"}
+          onSortChange={handleSortChange}
+          tags={params.tags}
+          onTagChange={handleTagChange}
+          onOpenFilter={handleOpenFilter}
+          availableTags={availableTags}
+        />
+      </View>
 
       {/* 列表区域 (flex: 1) */}
       {renderListContent()}
+
+      {/* 筛选 Drawer */}
+      <FilterDrawer
+        visible={isFilterOpen}
+        onClose={handleCloseFilter}
+        totalCount={list.length}
+      />
     </View>
   );
 }

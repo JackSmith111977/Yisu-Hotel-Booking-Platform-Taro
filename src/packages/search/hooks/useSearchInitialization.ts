@@ -56,12 +56,20 @@ export const useSearchInitialization = (): boolean => {
         updates.keyword = decodeURIComponent(params.keyword);
       }
 
-      // 3. Dates: 直接赋值 (假设 URL 格式为 YYYY-MM-DD)
+      // 3. Dates: 统一 URL 解码 (修复用户反馈的日期 URL 编码问题)
       if (params.checkInDate) {
-        updates.checkInDate = params.checkInDate;
+        try {
+          updates.checkInDate = decodeURIComponent(params.checkInDate);
+        } catch {
+          updates.checkInDate = params.checkInDate;
+        }
       }
       if (params.checkOutDate) {
-        updates.checkOutDate = params.checkOutDate;
+        try {
+          updates.checkOutDate = decodeURIComponent(params.checkOutDate);
+        } catch {
+          updates.checkOutDate = params.checkOutDate;
+        }
       }
 
       // 4. Tags: 特殊处理 (解码 + 分割字符串)
