@@ -3,6 +3,7 @@ import { View, Text } from '@tarojs/components'
 import { useState, useEffect, useRef } from 'react'
 import { Input, Button } from '@nutui/nutui-react-taro'
 import { useBookingStore } from '@/store/bookingStore'
+import { useUserStore } from '@/store/userStore'
 import { callSupabase } from '@/utils/supabase'  // 替换为你实际路径
 import './index.scss'
 
@@ -20,13 +21,13 @@ const formatDate = (dateStr: string) => {
   return `${d.getMonth() + 1}月${d.getDate()}日`
 }
 
-// TODO: 接入登录后替换为真实 user_id
-const TEST_USER_ID = '00000000-0000-0000-0000-000000000001'
+
 
 type PayStatus = 'paying' | 'success'
 
 const OrderPage = () => {
   const { hotelId, checkInDate, checkOutDate, nights, items, totalPrice } = useBookingStore()
+  const { isLoggedIn, userInfo } = useUserStore()
 
   const [guestName, setGuestName] = useState('')
   const [phone, setPhone] = useState('')
@@ -56,8 +57,45 @@ const OrderPage = () => {
   }, [payStatus, showModal])
 
   const submitOrder = async () => {
+    // 获取用户真实UUID
+    let userUuid: string | null = null
+    if (userInfo?.openid) {
+      try {
+        const result = await Taro.cloud.callFunction({
+          name: 'auth-service',
+          data: { action: 'get_user_id_by_openid', p_openid: userInfo.openid }
+        })
+        const res = result.result as any
+        if (res?.data) {
+          userUuid = res.data as string
+        }
+      } catch (e) {
+        console.error('获取用户UUID失败:', e)
+      }
+    }
+
+    if (!isLoggedIn || !userInfo?.openid) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packages/auth/pages/index' })
+          }
+        }
+      })
+      return
+    }
+
+    if (!userUuid) {
+      Taro.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+
     const rooms = items.map(item => ({
       room_type_id: item.roomTypeId,
+      room_type_name: item.roomName,
       room_price_per_night: item.price,
       quantity: item.count,
     }))
@@ -70,7 +108,7 @@ const OrderPage = () => {
       table: 'orders',
       method: 'insert',
       data: {
-        user_id: TEST_USER_ID,
+        user_id: userUuid,
         hotel_id: hotelId,
         check_in_date: checkInDate,
         check_out_date: checkOutDate,

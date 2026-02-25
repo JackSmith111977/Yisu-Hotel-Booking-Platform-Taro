@@ -5,6 +5,7 @@ import { Tag, Button } from "@nutui/nutui-react-taro";
 import { callSupabase } from "@/utils/supabase";
 import { BedInfo, RoomType, RoomAvailability } from "@/types/detailPage/RoomList";
 import { useBookingStore } from '@/store/bookingStore'
+import { useUserStore } from '@/store/userStore'
 import "./index.scss";
 
 interface RoomListProps {
@@ -23,6 +24,7 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
   const [loading, setLoading] = useState(true);
   // const [expandedRooms, setExpandedRooms] = useState<Record<number, boolean>>({});
   const { items, setItems, setContext, updateCount } = useBookingStore();
+  const { isLoggedIn } = useUserStore();
 
   const today = new Date().toISOString().slice(0, 10);
   const targetStart = checkInDate ?? today;
@@ -134,6 +136,20 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
     const count = getSelectedCount(room.id);
     if (count === 0) {
       Taro.showToast({ title: '请先选择房间数量', icon: 'none' });
+      return;
+    }
+
+    if (!isLoggedIn) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packages/auth/pages/index' })
+          }
+        }
+      })
       return;
     }
 

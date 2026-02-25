@@ -4,7 +4,7 @@ import Taro from "@tarojs/taro";
  * 调用 Supabase 代理云函数
  */
 export const callSupabase = async (payload: {
-  action: "table" | "rpc" | "auth_check";
+  action: "table" | "rpc" | "auth_check" | "wechat_code2session";
   table?: string;
   method?: "select" | "insert" | "update" | "delete";
   query?: string;
@@ -19,6 +19,16 @@ export const callSupabase = async (payload: {
     });
 
     const result: any = res.result;
+    
+    // 对于 wechat_code2session 操作，直接返回结果
+    if (payload.action === "wechat_code2session") {
+      if (result.success) {
+        return { data: result, error: null };
+      } else {
+        return { data: null, error: new Error(result.message || "获取openid失败") };
+      }
+    }
+    
     if (!result.success) {
       let errorMessage = "Unknown error in cloud function";
       if (result.error) {
