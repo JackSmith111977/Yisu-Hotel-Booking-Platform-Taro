@@ -313,6 +313,106 @@ class AuthService {
       return { success: false, message: '删除失败' };
     }
   }
+
+  async addFavorite(hotelId: string, openid: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'add_favorite',
+          p_hotel_id: Number(hotelId),
+          p_openid: openid
+        },
+      });
+
+      const resultData = result.result as any;
+      if (resultData && resultData.data && resultData.data.length > 0) {
+        return {
+          success: resultData.data[0].success,
+          message: resultData.data[0].message
+        };
+      }
+      return { success: false, message: '收藏失败' };
+    } catch (error) {
+      console.error('收藏失败:', error);
+      return { success: false, message: '收藏失败' };
+    }
+  }
+
+  async removeFavorite(hotelId: string, openid: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'remove_favorite',
+          p_hotel_id: Number(hotelId),
+          p_openid: openid
+        },
+      });
+
+      const resultData = result.result as any;
+      if (resultData && resultData.data && resultData.data.length > 0) {
+        return {
+          success: resultData.data[0].success,
+          message: resultData.data[0].message
+        };
+      }
+      return { success: false, message: '取消收藏失败' };
+    } catch (error) {
+      console.error('取消收藏失败:', error);
+      return { success: false, message: '取消收藏失败' };
+    }
+  }
+
+  async getUserFavorites(openid: string): Promise<{ success: boolean; favorites: any[] }> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'get_user_favorites',
+          p_openid: openid
+        },
+      });
+
+      console.log('getUserFavorites result:', result)
+      const resultData = result.result as any;
+      console.log('getUserFavorites resultData:', resultData)
+      if (resultData && resultData.data && Array.isArray(resultData.data)) {
+        return {
+          success: true,
+          favorites: resultData.data
+        };
+      }
+      return { success: true, favorites: [] };
+    } catch (error) {
+      console.error('获取收藏列表失败:', error);
+      return { success: false, favorites: [] };
+    }
+  }
+
+  async checkIsFavorited(hotelId: string, openid: string): Promise<boolean> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'check_is_favorited',
+          p_hotel_id: Number(hotelId),
+          p_openid: openid
+        },
+      });
+
+      console.log('checkIsFavorited result:', result)
+      const resultData = result.result as any;
+      console.log('checkIsFavorited resultData:', resultData)
+      if (resultData && resultData.data && resultData.data.length > 0) {
+        return resultData.data[0].is_favorited || false;
+      }
+      return false;
+    } catch (error) {
+      console.error('检查收藏状态失败:', error);
+      return false;
+    }
+  }
 }
 
 export const authService = new AuthService();

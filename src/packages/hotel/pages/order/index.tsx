@@ -27,7 +27,7 @@ type PayStatus = 'paying' | 'success'
 
 const OrderPage = () => {
   const { hotelId, checkInDate, checkOutDate, nights, items, totalPrice } = useBookingStore()
-  const { userInfo } = useUserStore()
+  const { isLoggedIn, userInfo } = useUserStore()
 
   const [guestName, setGuestName] = useState('')
   const [phone, setPhone] = useState('')
@@ -72,6 +72,20 @@ const OrderPage = () => {
       } catch (e) {
         console.error('获取用户UUID失败:', e)
       }
+    }
+
+    if (!isLoggedIn || !userInfo?.openid) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packages/auth/pages/index' })
+          }
+        }
+      })
+      return
     }
 
     if (!userUuid) {

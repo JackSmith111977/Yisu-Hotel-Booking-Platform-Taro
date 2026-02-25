@@ -4,6 +4,8 @@ import { RecommendResult } from '@/utils/recommendRooms'
 import { User } from '@nutui/icons-react-taro'
 import { callSupabase } from '@/utils/supabase'
 import { useBookingStore } from '@/store/bookingStore'
+import { useUserStore } from '@/store/userStore'
+import { authService } from '@/services/auth'
 import { useState } from 'react'
 import { HotelType } from '../../../types/detailPage/hotel'
 import HotelSwiper from '../components/HotelSwiper'
@@ -45,10 +47,12 @@ const HotelDetail = () => {
     children: 0,
   })
   const [showTopBar, setShowTopBar] = useState(false)
-  const [showBottomBar, setShowBottomBar] = useState(true)
   const [lowestPrice, setLowestPrice] = useState(0);
   const [recommendResult, setRecommendResult] = useState<RecommendResult | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0) // 刷新roomlist数据
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [isFavorited, setIsFavorited] = useState(false)
+  const [favoriteLoading, setFavoriteLoading] = useState(false)
+  const { isLoggedIn, userInfo } = useUserStore()
 
   // 获取传送的酒店数据
   const router = useRouter()
@@ -72,6 +76,11 @@ const HotelDetail = () => {
     if (data?.[0]) {
       console.log('接收到的房型数据:', data[0])
       setHotel(data[0])
+      
+      if (isLoggedIn && userInfo?.openid) {
+        const favorited = await authService.checkIsFavorited(id!, userInfo.openid)
+        setIsFavorited(favorited)
+      }
     }
   })
 
@@ -108,12 +117,59 @@ const HotelDetail = () => {
     setShowTopBar(scrollTop > 250)
   })
 
+  const toggleFavorite = async () => {
+    if (!isLoggedIn || !userInfo?.openid || !hotel?.id) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packages/auth/pages/index' })
+          }
+        }
+      })
+      return
+    }
+
+    if (favoriteLoading) return
+
+    setFavoriteLoading(true)
+    const tempFavorited = !isFavorited
+    setIsFavorited(tempFavorited)
+
+    try {
+      let result
+      if (tempFavorited) {
+        result = await authService.addFavorite(String(hotel.id), userInfo.openid)
+      } else {
+        result = await authService.removeFavorite(String(hotel.id), userInfo.openid)
+      }
+
+      if (result.success) {
+        setIsFavorited(tempFavorited)
+        Taro.showToast({ title: result.message, icon: 'success' })
+      } else {
+        setIsFavorited(!tempFavorited)
+        Taro.showToast({ title: result.message || '操作失败', icon: 'none' })
+      }
+    } catch (error) {
+      setIsFavorited(!tempFavorited)
+      Taro.showToast({ title: '网络错误', icon: 'none' })
+    } finally {
+      setFavoriteLoading(false)
+    }
+  }
+
   const { clearItems } = useBookingStore()
 
   useDidShow(() => {
-    setRefreshKey(k => k + 1) // 刷新roomlist
-    setRecommendResult(null)  // 清空推荐，用户重新选日期/人数触发
-    clearItems()  // 刷新选择的房间
+    setRefreshKey(k => k + 1)
+    setRecommendResult(null)
+    clearItems()
+    if (isLoggedIn && userInfo?.openid && hotel?.id) {
+      authService.checkIsFavorited(String(hotel.id), userInfo.openid).then(setIsFavorited)
+    }
   })  
 
   return (
@@ -122,7 +178,7 @@ const HotelDetail = () => {
       <StickyTopBar visible={showTopBar} name={hotel?.name_zh} />
 
       {/* 图片轮播 */}
-      <HotelSwiper images={hotelImages} />
+      <HotelSwiper images={hotelImages} isFavorited={isFavorited} onToggleFavorite={toggleFavorite} loading={favoriteLoading} />
 
       {/* 酒店信息 */}
       <HotelInfo

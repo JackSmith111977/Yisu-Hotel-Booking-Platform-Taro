@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro';
 import type { RecommendResult } from '@/utils/recommendRooms';
 import { BedInfo } from '@/types/detailPage/RoomList';
 import { useBookingStore } from '@/store/bookingStore'
+import { useUserStore } from '@/store/userStore'
 import './index.scss';
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 
 export function RoomRecommendResult({ result, nights, adultCount, childCount, onBook }: Props) {
   const { setItems, totalPrice } = useBookingStore()
+  const { isLoggedIn } = useUserStore()
   const totalRooms = result.rooms.reduce((s, r) => s + r.count, 0);
 
   const formatBeds = (beds: BedInfo[]) => {
@@ -32,6 +34,20 @@ export function RoomRecommendResult({ result, nights, adultCount, childCount, on
 
   // 订购逻辑
   const handleBookAll = () => {
+    if (!isLoggedIn) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packages/auth/pages/index' })
+          }
+        }
+      })
+      return;
+    }
+
     // 把推荐结果写入 store
     const newItems = result.rooms.map(({ room, count }) => ({
       roomTypeId: room.id,

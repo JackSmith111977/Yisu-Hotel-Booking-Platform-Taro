@@ -6,9 +6,12 @@ import './index.scss'
 
 interface HotelSwiperProps {
   images: string[]
+  isFavorited?: boolean
+  onToggleFavorite?: () => void
+  loading?: boolean
 }
 
-const HotelSwiper = ({ images }: HotelSwiperProps) => {
+const HotelSwiper = ({ images, isFavorited, onToggleFavorite, loading }: HotelSwiperProps) => {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const handleChange: CommonEventFunction<TaroSwiperProps.onChangeEventDetail> = useCallback((e) => {
@@ -46,7 +49,7 @@ const HotelSwiper = ({ images }: HotelSwiperProps) => {
       </View>
 
       {/* 顶部导航栏 */}
-      <TopNavBar />
+      <TopNavBar isFavorited={isFavorited} onToggleFavorite={onToggleFavorite} loading={loading} />
     </View>
   )
 }

@@ -24,7 +24,11 @@ export default defineAppConfig({
     // 用户分包
     {
       root: "packages/user",
-      pages: ["pages/order-list/index", "pages/order-detail/index"],
+      pages: [
+        "pages/order-list/index", 
+        "pages/order-detail/index",
+        "pages/favorites/index"
+      ],
     },
   ],
   // 3. TabBar 配置

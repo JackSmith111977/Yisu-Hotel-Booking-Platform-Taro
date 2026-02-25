@@ -46,12 +46,11 @@ export default function LoginPage() {
   return (
     <View className='login-page'>
       <View className='login-header'>
-        <Text className='title'>登录/注册</Text>
-        <Text className='subtitle'>欢迎使用酒店预订平台</Text>
+        <Text className='house-icon'>🏠</Text>
+        <Text className='subtitle'>欢迎使用易宿酒店预订平台</Text>
       </View>
 
       <View className='wechat-login'>
-        {/* 微信一键登录（真实授权） */}
         <Button
           className='login-btn wechat-btn'
           disabled={loading}
@@ -59,10 +58,6 @@ export default function LoginPage() {
         >
           {loading ? '登录中...' : '微信一键登录'}
         </Button>
-        
-        <View className='login-tip'>
-          <Text>点击上方按钮，授权微信信息即可登录</Text>
-        </View>
       </View>
     </View>
   )

@@ -1,9 +1,15 @@
 import { View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { ArrowLeft, HeartF, ShareF } from '@nutui/icons-react-taro'
+import { ArrowLeft, HeartF, Heart, ShareF, Loading } from '@nutui/icons-react-taro'
 import './index.scss'
 
-export default function TopNavBar() {
+interface TopNavBarProps {
+  isFavorited?: boolean
+  onToggleFavorite?: () => void
+  loading?: boolean
+}
+
+export default function TopNavBar({ isFavorited, onToggleFavorite, loading }: TopNavBarProps) {
   const systemInfo = Taro.getWindowInfo()
   const menuBtn = Taro.getMenuButtonBoundingClientRect()
 
@@ -14,6 +20,12 @@ export default function TopNavBar() {
   const btnTop = menuBtn.top - statusBarHeight
   const rightGap = screenWidth - menuBtn.right
   const rightOffset = screenWidth - menuBtn.left + 8
+
+  const handleFavoriteClick = () => {
+    if (onToggleFavorite) {
+      onToggleFavorite()
+    }
+  }
 
   return (
     <View
@@ -39,10 +51,17 @@ export default function TopNavBar() {
 
         <View className='nav-right'>
           <View
-            className='nav-btn'
+            className={`nav-btn ${loading ? 'loading' : ''}`}
             style={{ width: `${btnHeight}px`, height: `${btnHeight}px` }}
+            onClick={handleFavoriteClick}
           >
-            <HeartF size={16} color='#fff' />
+            {loading ? (
+              <Loading size={16} color='#fff' />
+            ) : isFavorited ? (
+              <Heart size={16} color='#ff4d4f' />
+            ) : (
+              <HeartF size={16} color='#fff' />
+            )}
           </View>
           <View
             className='nav-btn'

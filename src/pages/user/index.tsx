@@ -14,20 +14,37 @@ interface MenuItem {
 export default function User() {
   const { isLoggedIn, userInfo, logout } = useUserStore()
 
+  const navigateIfLoggedIn = (url: string) => {
+    if (!isLoggedIn) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packages/auth/pages/index' })
+          }
+        }
+      })
+      return
+    }
+    Taro.navigateTo({ url })
+  }
+
   const menuItems: MenuItem[] = [
     {
       icon: '📋',
       iconBg: '#fff3f0',
       title: '我的订单',
       desc: '查看全部订单',
-      onClick: () => Taro.navigateTo({ url: '/packages/user/pages/order-list/index' })
+      onClick: () => navigateIfLoggedIn('/packages/user/pages/order-list/index')
     },
     {
       icon: '❤️',
       iconBg: '#fff0f5',
       title: '我的收藏',
       desc: '收藏的酒店',
-      onClick: () => Taro.showToast({ title: '功能开发中', icon: 'none' })
+      onClick: () => navigateIfLoggedIn('/packages/user/pages/favorites/index')
     }
   ]
 
@@ -70,19 +87,11 @@ export default function User() {
               <View className='user-details'>
                 <Text className='user-name'>{userInfo.nickname || '未设置昵称'}</Text>
               </View>
-              <View className='edit-btn' onClick={handleEditProfile}>
-                <Text>编辑</Text>
-              </View>
             </View>
-            <View className='user-stats'>
-              <View className='stat-item'>
-                <Text className='stat-value'>{userInfo.total_order_count || 0}</Text>
-                <Text className='stat-label'>订单数量</Text>
-              </View>
-              <View className='stat-item'>
-                <Text className='stat-value'>¥{(userInfo.total_spent_amount || 0).toFixed(2)}</Text>
-                <Text className='stat-label'>累计消费</Text>
-              </View>
+            <View className='edit-btn-wrapper'>
+              <Button className='edit-btn' onClick={handleEditProfile}>
+                <Text>编辑</Text>
+              </Button>
             </View>
           </View>
 
@@ -115,7 +124,7 @@ export default function User() {
             <Text>🏨</Text>
           </View>
           <Text className='login-prompt-text'>
-            登录后即可查看您的订单、优惠券等信息
+            登录后即可查看您的订单、酒店收藏等信息
           </Text>
           <Button className='login-btn' onClick={handleLogin}>
             立即登录
