@@ -225,9 +225,7 @@ class AuthService {
       console.log('获取订单列表结果:', result);
 
       const resultData = result.result as any;
-      console.log('resultData:', resultData);
       if (resultData && resultData.data && Array.isArray(resultData.data)) {
-        console.log('订单数据:', resultData.data);
         return {
           success: true,
           orders: resultData.data
@@ -237,6 +235,57 @@ class AuthService {
     } catch (error) {
       console.error('获取订单列表失败:', error);
       return { success: false, orders: [] };
+    }
+  }
+
+  async getOrderDetail(orderId: string): Promise<{ success: boolean; order: any }> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'get_order_detail',
+          p_order_id: Number(orderId)
+        },
+      });
+
+      console.log('订单详情结果:', result);
+      const resultData = result.result as any;
+      console.log('订单详情数据:', resultData);
+      if (resultData && resultData.data && Array.isArray(resultData.data) && resultData.data.length > 0) {
+        return {
+          success: true,
+          order: resultData.data[0]
+        };
+      }
+      return { success: false, order: null };
+    } catch (error) {
+      console.error('获取订单详情失败:', error);
+      return { success: false, order: null };
+    }
+  }
+
+  async refundOrder(orderId: string, openid: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'refund_order',
+          p_order_id: Number(orderId),
+          p_openid: openid
+        },
+      });
+
+      const resultData = result.result as any;
+      if (resultData && resultData.data && resultData.data.length > 0) {
+        return {
+          success: resultData.data[0].success,
+          message: resultData.data[0].message
+        };
+      }
+      return { success: false, message: '退款失败' };
+    } catch (error) {
+      console.error('退款失败:', error);
+      return { success: false, message: '退款失败' };
     }
   }
 }

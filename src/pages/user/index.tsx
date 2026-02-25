@@ -49,7 +49,9 @@ export default function User() {
   }
 
   const handleEditProfile = () => {
-    Taro.showToast({ title: '编辑资料功能开发中', icon: 'none' })
+    Taro.navigateTo({
+      url: '/packages/auth/pages/edit/index'
+    })
   }
 
   return (

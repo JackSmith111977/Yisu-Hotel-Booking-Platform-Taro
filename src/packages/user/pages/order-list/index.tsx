@@ -22,7 +22,8 @@ const statusMap: Record<number, { text: string; color: string }> = {
   0: { text: '已取消', color: '#9e9e9e' },
   1: { text: '待支付', color: '#ff9800' },
   2: { text: '已支付', color: '#4caf50' },
-  3: { text: '已完成', color: '#2196f3' }
+  3: { text: '已完成', color: '#2196f3' },
+  4: { text: '已退款', color: '#f44336' }
 }
 
 export default function OrderList() {
@@ -46,6 +47,7 @@ export default function OrderList() {
       const result = await authService.getUserOrders(userInfo.openid)
       console.log('订单结果:', result)
       if (result.success && result.orders) {
+        console.log('设置订单:', result.orders);
         setOrders(result.orders)
       }
     } catch (error) {
@@ -55,8 +57,10 @@ export default function OrderList() {
     }
   }
 
-  const handleOrderClick = (_order: Order) => {
-    Taro.showToast({ title: '订单详情开发中', icon: 'none' })
+  const handleOrderClick = (order: Order) => {
+    Taro.navigateTo({
+      url: `/packages/user/pages/order-detail/index?id=${order.id}`
+    })
   }
 
   const formatDate = (dateStr: string) => {

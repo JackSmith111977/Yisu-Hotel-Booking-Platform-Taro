@@ -1,0 +1,131 @@
+.order-detail-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 120px;
+
+  .loading, .empty {
+    text-align: center;
+    padding: 100px 0;
+    color: #999;
+  }
+
+  .status-bar {
+    background-color: #fff;
+    padding: 30px;
+    text-align: center;
+
+    .status-text {
+      font-size: 36px;
+      font-weight: bold;
+    }
+  }
+
+  .hotel-card {
+    background-color: #fff;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    gap: 20px;
+
+    .hotel-image {
+      width: 160px;
+      height: 120px;
+      border-radius: 8px;
+    }
+
+    .hotel-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      .hotel-name {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .room-type {
+        font-size: 26px;
+        color: #666;
+      }
+    }
+  }
+
+  .info-section {
+    background-color: #fff;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 12px;
+
+    .section-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 0;
+
+      .info-label {
+        font-size: 28px;
+        color: #666;
+      }
+
+      .info-value {
+        font-size: 28px;
+        color: #333;
+
+        &.price {
+          color: #ff6b6b;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+
+    .btn-cancel, .btn-pay, .btn-refund {
+      flex: 1;
+      height: 80px;
+      line-height: 80px;
+      font-size: 30px;
+      border-radius: 40px;
+    }
+
+    .btn-cancel {
+      background-color: #fff;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+
+    .btn-pay {
+      background-color: #ff6b6b;
+      color: #fff;
+      border: none;
+    }
+
+    .btn-refund {
+      background-color: #fff;
+      color: #ff6b6b;
+      border: 1px solid #ff6b6b;
+    }
+  }
+}

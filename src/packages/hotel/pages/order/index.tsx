@@ -81,6 +81,7 @@ const OrderPage = () => {
 
     const rooms = items.map(item => ({
       room_type_id: item.roomTypeId,
+      room_type_name: item.roomName,
       room_price_per_night: item.price,
       quantity: item.count,
     }))
