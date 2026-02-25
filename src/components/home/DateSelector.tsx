@@ -1,5 +1,6 @@
 import { Calendar } from "@nutui/nutui-react-taro";
 import { Text, View } from "@tarojs/components";
+import dayjs from "dayjs";
 import { useState } from "react";
 
 // 参数接口
@@ -89,7 +90,7 @@ export const DateSelector = ({ startDate, endDate, onConfirm }: Props) => {
         visible={isVisible}
         defaultValue={[startDate, endDate]}
         type="range"
-        startDate={startDate}
+        startDate={dayjs().format("YYYY-MM-DD")}
         onClose={closeCalendar}
         onConfirm={handleConfirm}
       />

@@ -8,6 +8,7 @@ interface HotelInfoProps {
   nameEn?: string
   starRating?: number
   address?: string
+  phone?: string
 }
 
 const renderStars = (count: number) => {
@@ -16,7 +17,7 @@ const renderStars = (count: number) => {
   ))
 }
 
-const HotelInfo = ({ nameZh, nameEn, starRating = 0, address }: HotelInfoProps) => {
+const HotelInfo = ({ nameZh, nameEn, starRating = 0, address, phone }: HotelInfoProps) => {
   return (
     <View className='hotel-info-section'>
       {/* 酒店名称 */}
@@ -29,6 +30,14 @@ const HotelInfo = ({ nameZh, nameEn, starRating = 0, address }: HotelInfoProps) 
         </View>
       </View>
       <Text className='hotel-name-en'>{nameEn}</Text>
+
+      {/* 联系电话 */}
+      {phone && (
+        <View className='phone-row'>
+          <Text className='phone-icon'>📞</Text>
+          <Text className='phone-text'>{phone}</Text>
+        </View>
+      )}
 
       {/* 地理位置 */}
       <View className='location-row'>

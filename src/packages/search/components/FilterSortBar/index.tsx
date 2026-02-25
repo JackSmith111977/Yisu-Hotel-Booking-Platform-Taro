@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, Text } from '@tarojs/components';
-import { HotelSearchSort } from '@/types/home/search';
-import './index.scss';
+import React, { useState, useMemo, useCallback } from "react";
+import { View, Text, ScrollView } from "@tarojs/components";
+import { ArrowDown, ArrowUp, Filter, Check } from "@nutui/icons-react-taro";
+import { HotelSearchSort } from "@/types/home/search";
+import "./index.scss";
 
 /**
  * FilterSortBar 组件 Props 定义
@@ -12,111 +13,212 @@ interface FilterSortBarProps {
   currentSort: HotelSearchSort;
   /** 排序改变时的回调函数 */
   onSortChange: (sort: HotelSearchSort) => void;
+  /** 当前选中的筛选标签数组 */
+  tags: string[];
+  /** 标签改变时的回调函数 */
+  onTagChange: (tags: string[]) => void;
+  /** 打开全筛选面板的回调函数 */
+  onOpenFilter: () => void;
+  /** 可选的快捷标签列表，从搜索结果中获取 */
+  availableTags?: string[];
 }
 
 /**
- * 排序 Tab 配置项接口
+ * 排序选项配置
  */
-interface SortTabItem {
-  key: string;
-  label: string;
-  /** 对应的排序值，如果是单一排序则直接指定，如果是切换排序则可能包含多个 */
-  sortValue?: HotelSearchSort;
-  /** 是否是特殊处理的 Tab (如价格需要切换升降序) */
-  isToggle?: boolean;
-}
+const SORT_OPTIONS: { label: string; value: HotelSearchSort }[] = [
+  { label: "推荐排序", value: "recommended" },
+  { label: "价格低到高", value: "price_asc" },
+  { label: "价格高到低", value: "price_desc" },
+  { label: "评分高到低", value: "score_desc" },
+];
 
 /**
  * 筛选排序栏组件
- * @description 
- * 用于酒店列表页顶部的排序筛选工具栏。
- * 支持推荐排序、价格升降序切换、评分排序。
- * 采用防御性编程风格，对 Props 进行类型检查，并使用 React.memo 优化性能。
+ * @description
+ * 酒店列表页顶部的综合筛选工具栏，包含三个部分：
+ * 1. 左侧：排序下拉菜单 (Sort Dropdown)
+ * 2. 中间：快捷标签 (Quick Chips) - 随机展示 3-5 个来自搜索结果的标签
+ * 3. 右侧：全筛选入口 (Full Filter)
  */
-const FilterSortBar: React.FC<FilterSortBarProps> = ({ 
-  currentSort, 
-  onSortChange 
+const FilterSortBar: React.FC<FilterSortBarProps> = ({
+  currentSort,
+  onSortChange,
+  tags = [], // 提供默认值防止 undefined
+  onTagChange,
+  onOpenFilter,
+  availableTags = [],
 }) => {
+  // --- State ---
+  /** 控制排序下拉菜单的显示/隐藏 */
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   /**
-   * 处理价格排序点击逻辑
-   * @description 
-   * 1. 如果当前不是价格排序，默认切换为价格升序 (price_asc)。
-   * 2. 如果当前是价格升序，切换为价格降序 (price_desc)。
-   * 3. 如果当前是价格降序，切换为价格升序 (price_asc)。
+   * 随机选择的快捷标签
+   * 使用 useMemo 确保只在 availableTags 变化时重新计算，避免每次渲染都变
    */
-  const handlePriceClick = useCallback(() => {
-    if (currentSort === 'price_asc') {
-      onSortChange('price_desc');
-    } else if (currentSort === 'price_desc') {
-      onSortChange('price_asc');
-    } else {
-      // 默认从低到高
-      onSortChange('price_asc');
+  const quickTags = useMemo(() => {
+    if (!availableTags || availableTags.length === 0) {
+      return ["免费取消", "无需信用卡", "含早餐"]; // 默认兜底
     }
-  }, [currentSort, onSortChange]); // 依赖 currentSort 判断当前状态，依赖 onSortChange 触发回调
 
-  /**
-   * 通用 Tab 点击处理
-   * @param sortValue 目标排序值
-   */
-  const handleTabClick = useCallback((sortValue: HotelSearchSort) => {
-    // 如果点击的是当前已选中的非切换类 Tab，则不进行操作（避免重复请求）
-    if (currentSort === sortValue) return;
-    onSortChange(sortValue);
-  }, [currentSort, onSortChange]);
+    // 复制数组以免修改原数组
+    const shuffled = [...availableTags].sort(() => 0.5 - Math.random());
+    // 取前 4 个作为快捷标签
+    return shuffled.slice(0, 4);
+  }, [availableTags]);
 
+  // --- Computed ---
   /**
-   * 计算价格 Tab 的激活状态
-   * @description 使用 useMemo 缓存计算结果，避免不必要的重复计算
+   * 获取当前排序的显示文本
+   * @description 根据 currentSort 查找对应的 label，如果没找到则显示默认值
    */
-  const priceActiveState = useMemo(() => {
-    const isPriceActive = currentSort === 'price_asc' || currentSort === 'price_desc';
-    return {
-      isActive: isPriceActive,
-      isAsc: currentSort === 'price_asc',
-      isDesc: currentSort === 'price_desc'
-    };
+  const currentSortLabel = useMemo(() => {
+    const option = SORT_OPTIONS.find((opt) => opt.value === currentSort);
+    return option ? option.label : "推荐排序";
   }, [currentSort]);
+
+  /**
+   * 计算筛选按钮的样式状态
+   * @description 如果有选中的标签，筛选按钮高亮显示
+   */
+  const filterButtonState = useMemo(() => {
+    const hasActiveTags = tags.length > 0;
+    return {
+      active: hasActiveTags,
+      count: tags.length,
+    };
+  }, [tags]);
+
+  // --- Handlers ---
+
+  /**
+   * 切换排序菜单显示状态
+   */
+  const toggleSortMenu = useCallback(() => {
+    setIsSortOpen((prev) => !prev);
+  }, []);
+
+  /**
+   * 关闭排序菜单
+   */
+  const closeSortMenu = useCallback(() => {
+    setIsSortOpen(false);
+  }, []);
+
+  /**
+   * 处理排序选项点击
+   * @param value 选中的排序值
+   */
+  const handleSortSelect = useCallback(
+    (value: HotelSearchSort) => {
+      if (value !== currentSort) {
+        onSortChange(value);
+      }
+      closeSortMenu();
+    },
+    [currentSort, onSortChange, closeSortMenu],
+  );
+
+  /**
+   * 处理快捷标签点击
+   * @param tag 点击的标签
+   */
+  const handleTagClick = useCallback(
+    (tag: string) => {
+      // 这里的逻辑是：如果已存在则移除，如果不存在则添加
+      const newTags = tags.includes(tag)
+        ? tags.filter((t) => t !== tag)
+        : [...tags, tag];
+      onTagChange(newTags);
+    },
+    [tags, onTagChange],
+  );
 
   return (
     <View className="filter-sort-bar">
-      {/* 推荐 Tab */}
-      <View 
-        className={`sort-tab ${currentSort === 'recommended' ? 'active' : ''}`}
-        onClick={() => handleTabClick('recommended')}
+      {/* 1. 左侧：排序下拉菜单 */}
+      <View
+        className={`sort-dropdown ${isSortOpen ? "active" : ""}`}
+        onClick={toggleSortMenu}
       >
-        <Text>推荐</Text>
-      </View>
-
-      {/* 价格 Tab (特殊处理) */}
-      <View 
-        className={`sort-tab ${priceActiveState.isActive ? 'active' : ''}`}
-        onClick={handlePriceClick}
-      >
-        <Text>价格</Text>
-        <View className="icon-wrapper">
-          {/* 上箭头 (升序) */}
-          <View 
-            className={`sort-icon up ${priceActiveState.isAsc ? 'active' : ''}`} 
-          />
-          {/* 下箭头 (降序) */}
-          <View 
-            className={`sort-icon down ${priceActiveState.isDesc ? 'active' : ''}`} 
-          />
+        <Text className="sort-label">{currentSortLabel}</Text>
+        <View className="sort-icon">
+          {isSortOpen ? (
+            <ArrowUp size={14} color={isSortOpen ? "#007aff" : "#333"} />
+          ) : (
+            <ArrowDown size={14} color="#333" />
+          )}
         </View>
       </View>
 
-      {/* 评分 Tab */}
-      <View 
-        className={`sort-tab ${currentSort === 'score_desc' ? 'active' : ''}`}
-        onClick={() => handleTabClick('score_desc')}
+      {/* 2. 中间：快捷标签 (Scrollable) */}
+      <ScrollView className="quick-chips" scrollX showScrollbar={false}>
+        <View className="chips-container">
+          {quickTags.map((tag) => {
+            const isActive = tags.includes(tag);
+            return (
+              <View
+                key={tag}
+                className={`chip ${isActive ? "active" : ""}`}
+                onClick={() => handleTagClick(tag)}
+              >
+                <Text className="chip-text">{tag}</Text>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      {/* 3. 右侧：全筛选入口 */}
+      <View
+        className={`filter-entry ${filterButtonState.active ? "active" : ""}`}
+        onClick={onOpenFilter}
       >
-        <Text>评分</Text>
+        <Text className="filter-text">筛选</Text>
+        <Filter
+          size={14}
+          color={filterButtonState.active ? "#007aff" : "#333"}
+        />
+        {/* 数字角标 */}
+        {filterButtonState.count > 0 && (
+          <View className="badge">
+            <Text className="badge-text">
+              {filterButtonState.count > 9 ? "9+" : filterButtonState.count}
+            </Text>
+          </View>
+        )}
       </View>
+
+      {/* --- Dropdown Menu Overlay --- */}
+      {isSortOpen && (
+        <>
+          {/* 遮罩层：点击空白处关闭菜单 */}
+          <View className="dropdown-mask" onClick={closeSortMenu} />
+          {/* 菜单列表 */}
+          <View className="dropdown-menu">
+            {SORT_OPTIONS.map((option) => (
+              <View
+                key={option.value}
+                className={`menu-item ${
+                  currentSort === option.value ? "active" : ""
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation(); // 防止冒泡触发 toggle
+                  handleSortSelect(option.value);
+                }}
+              >
+                <Text className="menu-text">{option.label}</Text>
+                {currentSort === option.value && (
+                  <Check size={16} color="#007aff" />
+                )}
+              </View>
+            ))}
+          </View>
+        </>
+      )}
     </View>
   );
 };
 
-// 使用 React.memo 避免父组件渲染导致的不必要重渲染
 export default React.memo(FilterSortBar);

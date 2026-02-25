@@ -30,7 +30,7 @@
 
 .search-card {
   background: #fff;
-  margin: -40px 20px 0; // 向上浮动，稍微覆盖 Banner 底部
+  margin: -20px 20px 0; // 向上浮动，稍微覆盖 Banner 底部
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -98,6 +98,24 @@
 
       .nut-searchbar__input-bar {
         background: #f7f8fa;
+      }
+
+      /* 调整清除按钮大小 */
+      .nut-searchbar-clear {
+        /* 使用 ConfigProvider 传入的自定义变量 */
+        width: var(--nutui-searchbar-clear-icon-width, 32px) !important;
+        height: var(--nutui-searchbar-clear-icon-height, 32px) !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-right: -8px;
+
+        .nut-icon {
+          font-size: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+          width: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+          height: var(--nutui-searchbar-clear-icon-size, 20px) !important;
+        }
       }
     }
   }

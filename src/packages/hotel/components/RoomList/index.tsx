@@ -21,8 +21,7 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
   const [rooms, setRooms] = useState<RoomType[]>([]);
   const [availabilityMap, setAvailabilityMap] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
-
-  // ✅ 所有 hooks 在最顶部，无条件调用
+  // const [expandedRooms, setExpandedRooms] = useState<Record<number, boolean>>({});
   const { items, setItems, setContext, updateCount } = useBookingStore();
 
   const today = new Date().toISOString().slice(0, 10);
@@ -31,7 +30,6 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
     const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10);
   })();
 
-  // 同步 context 到 store
   useEffect(() => {
     if (hotelId && checkInDate && checkOutDate) {
       setContext(hotelId, checkInDate, checkOutDate, nights ?? 1);
@@ -110,11 +108,9 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
     }
   }, [onPriceReady, sortedRooms]);
 
-  // 获取某房型在 store 中当前选择的数量
   const getSelectedCount = (roomId: number): number =>
     items.find((i) => i.roomTypeId === roomId)?.count ?? 0;
 
-  // 更新数量
   const handleCountChange = (room: RoomType, delta: number) => {
     const current = getSelectedCount(room.id);
     const max = getAvailable(room);
@@ -125,7 +121,7 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
         roomTypeId: room.id,
         roomName: room.name,
         price: room.price,
-        count: 0,        // count 字段会被第二个参数 next 覆盖，随便给个初值
+        count: 0,
         images: room.images ?? [],
         adultCount: adultCount ?? 1,
         childCount: childCount ?? 0,
@@ -134,7 +130,6 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
     );
   };
 
-  // 点击"订"按钮
   const handleBook = (room: RoomType) => {
     const count = getSelectedCount(room.id);
     if (count === 0) {
@@ -151,8 +146,6 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
       items: store.items,
       totalPrice: store.totalPrice(),
     };
-
-    console.log('[BookingOrder] 传递给订单页的参数:', orderData);
 
     Taro.navigateTo({
       url: '/packages/hotel/pages/order/index',
@@ -171,7 +164,11 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
     Taro.previewImage({ current: images[index], urls: images });
   };
 
-  // ✅ early return 在所有 hooks 之后
+  // 房型描述展开
+  // const toggleDescription = (roomId: number) => {
+  //   setExpandedRooms(prev => ({ ...prev, [roomId]: !prev[roomId] }));
+  // };
+
   if (loading) {
     return (
       <View className='room-list-loading'>
@@ -237,20 +234,29 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
                 </Text>
               </View>
 
+              {/* 房型描述 */}
+              {room.description && (
+                <Text className='room-description'>{room.description}</Text>
+              )}
+
+              {/* 设施标签 */}
               {room.facilities && room.facilities.length > 0 && (
                 <View className='room-tags'>
-                  {room.facilities.slice(0, 4).map((facility, idx) => (
+                  {room.facilities.slice(0, 5).map((facility, idx) => (
                     <Tag
                       key={idx}
-                      type='info'
                       style={{
-                        '--nutui-tag-font-size': '8px',
-                        '--nutui-tag-padding': '2px',
-                        'background': '#0068c9',
+                        '--nutui-tag-font-size': '10px',
+                        '--nutui-tag-padding': '4px',
+                        '--nutui-tag-border-radius': '4px',
+                        '--nutui-tag-color': '#666',
+                        'background': '#f7f7f7',
+                        'border': '1px solid #ddd',
+                        'color': '#666',
                       } as React.CSSProperties}
                     >
                       {facility}
-                    </Tag>
+                  </Tag>
                   ))}
                 </View>
               )}
@@ -262,7 +268,6 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
                 ) : (
                   <View className='price-content'>
                     <View className='price-left'>
-                      {/* 数量选择器 */}
                       <View className='room-count-selector'>
                         <View
                           className={`count-btn ${selectedCount <= 0 ? 'count-btn-disabled' : ''}`}
@@ -285,7 +290,6 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
                       <Text className='price-suffix'>起</Text>
                     </View>
                     <View className='price-right'>
-                      {/* 订按钮 */}
                       <Button
                         type='primary'
                         color='linear-gradient(to right, #4da6ff, #0068c9)'

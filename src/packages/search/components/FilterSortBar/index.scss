@@ -1,69 +1,186 @@
 .filter-sort-bar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background-color: #ffffff;
-  border-bottom: 1px solid #eeeeee;
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  height: 44px;
-  width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  height: 50px; // 增大高度，适应移动端触控
+  background-color: #fff;
+  border-bottom: 1px solid #f5f5f5;
+  padding: 0 16px; // 增大左右内边距
+  position: relative;
+  z-index: 100;
 
-  .sort-tab {
+  // 1. 左侧 Sort Dropdown
+  .sort-dropdown {
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    font-size: 14px;
-    color: #666666;
-    transition: all 0.2s ease;
-    position: relative;
+    flex-shrink: 0;
+    margin-right: 16px; // 增大间距
+    padding: 4px 0;
 
     &.active {
-      color: #0066FF;
-      font-weight: 600;
-      
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 20px;
-        height: 2px;
-        background-color: #0066FF;
-        border-radius: 2px;
+      .sort-label {
+        color: #007aff;
+        font-weight: 600; // 加粗
       }
     }
 
-    .icon-wrapper {
+    .sort-label {
+      font-size: 24px; // 增大字体
+      color: #333;
+      margin-right: 6px;
+      font-weight: 500;
+    }
+
+    .sort-icon {
       display: flex;
-      flex-direction: column;
-      margin-left: 4px;
-      
-      .sort-icon {
-        width: 0;
-        height: 0;
-        border-left: 3px solid transparent;
-        border-right: 3px solid transparent;
-        margin: 1px 0;
-        
-        &.up {
-          border-bottom: 4px solid #ccc;
-          &.active {
-            border-bottom-color: #0066FF;
-          }
-        }
-        
-        &.down {
-          border-top: 4px solid #ccc;
-          &.active {
-            border-top-color: #0066FF;
-          }
+      align-items: center;
+    }
+  }
+
+  // 2. 中间 Quick Chips
+  .quick-chips {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-right: 16px;
+
+    .chips-container {
+      display: flex;
+      align-items: center;
+      padding-right: 16px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 14px; // 增大点击区域
+      background-color: #f7f8fa; // 更柔和的背景色
+      border-radius: 16px; // 更圆润的圆角
+      margin-right: 10px;
+      transition: all 0.2s;
+
+      &:last-child {
+        margin-right: 0;
+      }
+
+      &.active {
+        background-color: rgba(0, 122, 255, 0.08);
+
+        .chip-text {
+          color: #007aff;
+          font-weight: 500;
         }
       }
+
+      .chip-text {
+        font-size: 24px; // 增大字体
+        color: #666;
+      }
     }
+  }
+
+  // 3. 右侧 Filter Entry
+  .filter-entry {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    position: relative;
+    padding-left: 16px;
+    border-left: 1px solid #f0f0f0;
+
+    &.active {
+      .filter-text {
+        color: #007aff;
+        font-weight: 600;
+      }
+    }
+
+    .filter-text {
+      font-size: 24px; // 增大字体
+      color: #333;
+      margin-right: 6px;
+      font-weight: 500;
+    }
+
+    .badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background-color: #ff3b30;
+      border-radius: 10px;
+      height: 16px;
+      min-width: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 1px solid #fff;
+
+      .badge-text {
+        font-size: 16px;
+        color: #fff;
+        line-height: 1;
+        font-weight: bold;
+      }
+    }
+  }
+
+  // Dropdown Menu Overlay
+  .dropdown-mask {
+    position: absolute;
+    top: 50px; // Match new height
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4); // 稍微调淡
+    z-index: 99;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 50px; // Match new height
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    z-index: 101;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    padding: 8px 0;
+    animation: slideDown 0.25s cubic-bezier(0.21, 1.02, 0.73, 1); // 优化动画曲线
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px; // 增大点击区域
+
+      &:active {
+        background-color: #f5f5f5;
+      }
+
+      &.active {
+        .menu-text {
+          color: #007aff;
+          font-weight: 600;
+        }
+      }
+
+      .menu-text {
+        font-size: 24px; // 增大字体
+        color: #333;
+      }
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

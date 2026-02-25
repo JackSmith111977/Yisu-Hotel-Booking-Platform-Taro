@@ -1,8 +1,10 @@
-import Taro, { useLoad, usePageScroll } from '@tarojs/taro'
+import Taro, { useLoad, usePageScroll, useRouter, useDidShow } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { RecommendResult } from '@/utils/recommendRooms'
 import { User } from '@nutui/icons-react-taro'
-import { useState, useRef, useEffect } from 'react'
+import { callSupabase } from '@/utils/supabase'
+import { useBookingStore } from '@/store/bookingStore'
+import { useState } from 'react'
 import { HotelType } from '../../../types/detailPage/hotel'
 import HotelSwiper from '../components/HotelSwiper'
 import HotelInfo from '../components/HotelInfo'
@@ -11,6 +13,8 @@ import BottomBar from '../components/BottomBar'
 import RoomList from '../components/RoomList'
 import StickyTopBar from '../components/StickyTopBar'
 import { RoomRecommendResult } from '../components/RoomrecommendResult'
+import HotelTags from '../components/HotelTags'
+
 import './index.scss'
 
 interface DateRange {
@@ -44,21 +48,35 @@ const HotelDetail = () => {
   const [showBottomBar, setShowBottomBar] = useState(true)
   const [lowestPrice, setLowestPrice] = useState(0);
   const [recommendResult, setRecommendResult] = useState<RecommendResult | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0) // 刷新roomlist数据
 
   // 获取传送的酒店数据
-  useLoad(() => {
-    const pages = Taro.getCurrentPages()
-    const current = pages[pages.length - 1]
-    const eventChannel = current.getOpenerEventChannel()
-
-    eventChannel.on('acceptDataFromOpenerPage', (res) => {
-      console.log('接收到的数据:', res.data.data[0])
-      setHotel(res.data.data[0])
+  const router = useRouter()
+  useLoad(async () => {
+    const { id } = router.params
+    
+    const { data, error } = await callSupabase({
+      action: "table",
+      table: "hotels",
+      method: "select",
+      query: "*",
+      params: {
+        eq: { id: Number(id) }
+      }
     })
+    
+    if (error) {
+      console.error("获取酒店详情失败:", error)
+      return
+    }
+    if (data?.[0]) {
+      console.log('接收到的房型数据:', data[0])
+      setHotel(data[0])
+    }
   })
 
   // 预处理数据
-  const hotelImages = hotel ? [hotel.image, ...hotel.album] : [];
+  const hotelImages = hotel ? [hotel.image, ...(hotel.album ?? [])] : [];
   const hotelAddress = `${JSON.parse(hotel?.region || '[]')?.filter((item: string) => item !== '市辖区').join('') || ''}${hotel?.address || ''}`;
   const stickyNavHeight = Taro.getMenuButtonBoundingClientRect().bottom + 10  // Hotelinfo sticky 位置
 
@@ -90,6 +108,14 @@ const HotelDetail = () => {
     setShowTopBar(scrollTop > 250)
   })
 
+  const { clearItems } = useBookingStore()
+
+  useDidShow(() => {
+    setRefreshKey(k => k + 1) // 刷新roomlist
+    setRecommendResult(null)  // 清空推荐，用户重新选日期/人数触发
+    clearItems()  // 刷新选择的房间
+  })  
+
   return (
     <View className='hotel-detail'>
       {/* 酒店信息吸顶 */}
@@ -104,7 +130,11 @@ const HotelDetail = () => {
         nameEn={hotel?.name_en}
         starRating={hotel?.star_rating}
         address={hotelAddress}
-      />      
+        phone={hotel?.contact_phone}
+      />
+      
+      {/* 酒店 Tags */}
+      <HotelTags tags={hotel?.tags ?? []} />
 
       {/* 日期 & 入住信息 */}
       <View 
@@ -123,26 +153,27 @@ const HotelDetail = () => {
         </View>
       </View>
       
-      {recommendResult && (
+      {recommendResult && (roomGuest.rooms > 1 || roomGuest.adults > 1 || roomGuest.children > 0) ? (
         <RoomRecommendResult 
           result={recommendResult} 
           nights={dateRange.nights}
           adultCount={roomGuest.adults}
           childCount={roomGuest.children}
         />
-      )}
+      ) : null}
 
       {/* 房型列表 */}
       {/* dateRange={dateRange} roomGuest={roomGuest} */}
-      {recommendResult && (
+      {recommendResult && (roomGuest.adults > 1 || roomGuest.children > 0 || roomGuest.rooms > 1) ? (
         <View className='prompt'>
           <User className='prompt-icon' />
           <Text >其余可供选择的房型</Text>
           {/* <Text >{`不满足"${roomGuest.adults}名成人, ${roomGuest.children}名儿童"的房型`}</Text> */}
         </View>        
-      )}
+      ) : null}
 
       <RoomList 
+        key={refreshKey}
         hotelId={hotel?.id} 
         checkInDate={toStr(dateRange.start)}
         checkOutDate={toStr(dateRange.end)}

@@ -4,6 +4,13 @@
   flex-direction: column;
   background-color: #f5f5f5;
 
+  .fixed-header-wrapper {
+    position: relative;
+    z-index: 100;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  }
+
   .search-scroll-view {
     flex: 1;
     overflow: hidden;

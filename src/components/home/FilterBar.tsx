@@ -1,25 +1,19 @@
 // src/components/home/FilterBar.tsx
 
-import { Button, ConfigProvider, Popup, Tag } from "@nutui/nutui-react-taro";
+import {
+  Button,
+  ConfigProvider,
+  Popup,
+  Tag as NutTag,
+} from "@nutui/nutui-react-taro";
 import { ScrollView, Text, View } from "@tarojs/components";
-import { QuickTag } from "../../../types/home/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTagStore } from "@/store/tagStore";
 
 interface Props {
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
 }
-
-const MOCK_TAGS: QuickTag[] = [
-  { id: "1", label: "亲子", value: "family" },
-  { id: "2", label: "情侣", value: "couple" },
-  { id: "3", label: "商务", value: "business" },
-  { id: "4", label: "豪华", value: "luxury" },
-  { id: "5", label: "其他", value: "other" },
-  { id: "6", label: "海景", value: "seaview" },
-  { id: "7", label: "山景", value: "mountain" },
-  { id: "8", label: "温泉", value: "hotspring" },
-];
 
 // 定义一组主色调
 const MAIN_COLORS = [
@@ -34,12 +28,22 @@ const addTagTheme = {
   nutuiTagBackgroundColor: "#ffffff",
   nutuiTagColor: "#1989fa",
   nutuiTagBorderColor: "#1989fa",
-  nutuiTagPadding: "8px 6px",
-  nutuiTagFontSize: "14px",
+  nutuiTagPadding: "8px 12px",
+  nutuiTagFontSize: "12px",
   nutuiTagBorderRadius: "8px",
 };
 
+const popupBtnTheme = {
+  nutuiButtonDefaultFontSize: "18px",
+  nutuiButtonDefaultHeight: "36px",
+  nutuiButtonDefaultLineHeight: "36px",
+  nutuiButtonDefaultBorderRadius: "8px",
+};
+
 export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
+  // 从 Store 获取标签数据
+  const { tags, fetchTags } = useTagStore();
+
   // 控制弹窗显示
   const [showPopup, setShowPopup] = useState(false);
   // 首页“展示池”：用户决定放在外面的标签
@@ -47,6 +51,22 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
   const [visibleTags, setVisibleTags] = useState<string[]>([]);
   // 弹窗内的“临时选中状态”：决定哪些标签要添加到首页
   const [tempVisibleTags, setTempVisibleTags] = useState<string[]>([]);
+
+  // 组件挂载时获取标签数据
+  useEffect(() => {
+    if (tags.length === 0) {
+      fetchTags();
+    }
+  }, [fetchTags, tags.length]);
+
+  // 当标签数据加载完成后，初始化 visibleTags（如果为空）
+  useEffect(() => {
+    if (tags.length > 0 && visibleTags.length === 0) {
+      // 默认展示前 8 个标签
+      const defaultVisible = tags.slice(0, 8).map((t) => t.name);
+      setVisibleTags(defaultVisible);
+    }
+  }, [tags, visibleTags.length]);
 
   // 打开弹窗时，初始化临时状态
   const handleOpenPopup = () => {
@@ -75,22 +95,23 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
           nutuiTagBackgroundColor: mainColor,
           nutuiTagColor: "#ffffff",
           nutuiTagBorderColor: mainColor,
-          nutuiTagPadding: "8px 16px",
-          nutuiTagFontSize: "14px",
+          nutuiTagPadding: "10px 20px", // 增大内边距
+          nutuiTagFontSize: "16px", // 增大字体
           nutuiTagBorderRadius: "8px",
         }
       : {
           nutuiTagBackgroundColor: "#ffffff",
           nutuiTagColor: mainColor,
           nutuiTagBorderColor: mainColor,
-          nutuiTagPadding: "8px 16px",
-          nutuiTagFontSize: "14px",
+          nutuiTagPadding: "10px 20px", // 增大内边距
+          nutuiTagFontSize: "16px", // 增大字体
           nutuiTagBorderRadius: "8px",
         };
   };
   return (
     <View className="filter-bar">
       <Text className="section-title">快捷筛选</Text>
+
       <ScrollView scrollX className="tags-scroll" showScrollbar={false}>
         <View
           className="tags-container"
@@ -102,40 +123,40 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
             style={{ marginRight: "10px", display: "inline-block" }}
           >
             <ConfigProvider theme={addTagTheme}>
-              <Tag
+              <NutTag
                 plain
                 round
                 style={{ border: "1px dashed #999", color: "#666" }}
               >
                 {visibleTags.length > 0 ? "+" : "+ 添加标签"}
-              </Tag>
+              </NutTag>
             </ConfigProvider>
           </View>
 
           {/* 2. 已添加到首页的标签 (点击触发筛选) */}
-          {visibleTags.map((tagVal) => {
-            const tagObj = MOCK_TAGS.find((t) => t.value === tagVal);
+          {visibleTags.map((tagName) => {
+            const tagObj = tags.find((t) => t.name === tagName);
             if (!tagObj) return null;
 
             // 这里判断是否被“筛选选中”，决定样式
-            const isSelected = selectedTags.includes(tagVal);
-            const index = MOCK_TAGS.findIndex((t) => t.value === tagVal);
+            const isSelected = selectedTags.includes(tagName);
+            const index = tags.findIndex((t) => t.name === tagName);
             const theme = getTagTheme(isSelected, index);
 
             return (
-              <ConfigProvider theme={theme} key={tagVal}>
+              <ConfigProvider theme={theme} key={tagName}>
                 <View
-                  onClick={() => onTagToggle(tagVal)}
+                  onClick={() => onTagToggle(tagName)}
                   style={{ display: "inline-block", marginRight: "10px" }}
                 >
-                  <Tag
+                  <NutTag
                     type="default"
                     plain={false}
                     round
                     style={{ border: `1px solid ${theme.nutuiTagBorderColor}` }}
                   >
-                    {tagObj.label}
-                  </Tag>
+                    {tagObj.name}
+                  </NutTag>
                 </View>
               </ConfigProvider>
             );
@@ -161,6 +182,7 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
               textAlign: "center",
               borderBottom: "1px solid #eee",
               fontWeight: "bold",
+              fontSize: "18px", // 增大标题字体
             }}
           >
             添加到首页
@@ -169,24 +191,29 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
           {/* 内容区域：所有标签 */}
           <ScrollView scrollY style={{ flex: 1, padding: "16px" }}>
             <View style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-              {MOCK_TAGS.map((tag, index) => {
+              {tags.map((tag, index) => {
                 // 判断是否在“临时展示池”中
-                const isSelectedInPopup = tempVisibleTags.includes(tag.value);
+                const isSelectedInPopup = tempVisibleTags.includes(tag.name);
                 const theme = getTagTheme(isSelectedInPopup, index);
 
                 return (
                   <ConfigProvider theme={theme} key={tag.id}>
-                    <View onClick={() => toggleTempTag(tag.value)}>
-                      <Tag
+                    <View
+                      onClick={() => toggleTempTag(tag.name)}
+                      style={{
+                        display: "inline-block",
+                      }}
+                    >
+                      <NutTag
                         type="default"
-                        plain={!isSelectedInPopup} // 未选中时为空心，选中为实心
+                        plain={!isSelectedInPopup} // 选中时实心，未选中时空心
                         round
                         style={{
                           border: `1px solid ${theme.nutuiTagBorderColor}`,
                         }}
                       >
-                        {tag.label}
-                      </Tag>
+                        {tag.name}
+                      </NutTag>
                     </View>
                   </ConfigProvider>
                 );
@@ -195,31 +222,33 @@ export const FilterBar = ({ selectedTags, onTagToggle }: Props) => {
           </ScrollView>
 
           {/* 底部按钮 */}
-          <View
-            style={{
-              padding: "16px",
-              display: "flex",
-              gap: "16px",
-              borderTop: "1px solid #eee",
-            }}
-          >
-            <Button
-              block
-              type="default"
-              onClick={() => setShowPopup(false)}
-              style={{ flex: 1 }}
+          <ConfigProvider theme={popupBtnTheme}>
+            <View
+              style={{
+                padding: "16px",
+                display: "flex",
+                gap: "16px",
+                borderTop: "1px solid #eee",
+              }}
             >
-              取消
-            </Button>
-            <Button
-              block
-              type="primary"
-              onClick={handleConfirm}
-              style={{ flex: 1 }}
-            >
-              确认
-            </Button>
-          </View>
+              <Button
+                block
+                type="default"
+                onClick={() => setShowPopup(false)}
+                style={{ flex: 1 }}
+              >
+                取消
+              </Button>
+              <Button
+                block
+                type="primary"
+                onClick={handleConfirm}
+                style={{ flex: 1 }}
+              >
+                确认
+              </Button>
+            </View>
+          </ConfigProvider>
         </View>
       </Popup>
     </View>
