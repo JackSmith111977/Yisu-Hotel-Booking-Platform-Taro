@@ -95,6 +95,29 @@ export default function OrderDetail() {
     })
   }
 
+  const handleDelete = async () => {
+    if (!userInfo?.openid) {
+      Taro.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+
+    Taro.showModal({
+      title: '确认删除',
+      content: '确定要删除该订单吗？此操作不可恢复。',
+      success: async (res) => {
+        if (res.confirm && order) {
+          const result = await authService.deleteOrder(String(order.id), userInfo.openid || '')
+          if (result.success) {
+            Taro.showToast({ title: result.message, icon: 'success' })
+            Taro.navigateBack()
+          } else {
+            Taro.showToast({ title: result.message, icon: 'none' })
+          }
+        }
+      }
+    })
+  }
+
   if (loading) {
     return (
       <View className='order-detail-page'>
@@ -207,7 +230,13 @@ export default function OrderDetail() {
           </>
         )}
         {order.status === 2 && (
-          <Button className='btn-refund' onClick={handleCancel}>申请退款</Button>
+          <>
+            <Button className='btn-refund' onClick={handleCancel}>申请退款</Button>
+            <Button className='btn-delete' onClick={handleDelete}>删除订单</Button>
+          </>
+        )}
+        {(order.status === 0 || order.status === 3 || order.status === 4) && (
+          <Button className='btn-delete' onClick={handleDelete}>删除订单</Button>
         )}
       </View>
     </View>

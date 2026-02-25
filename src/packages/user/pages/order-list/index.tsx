@@ -37,6 +37,18 @@ export default function OrderList() {
     }
   }, [isLoggedIn])
 
+  useEffect(() => {
+    const instance = Taro.getCurrentInstance()
+    const page = instance.page
+    if (page) {
+      page.onShow = () => {
+        if (isLoggedIn) {
+          loadOrders()
+        }
+      }
+    }
+  }, [isLoggedIn])
+
   const loadOrders = async () => {
     if (!userInfo?.openid) {
       console.log('openid不存在')
