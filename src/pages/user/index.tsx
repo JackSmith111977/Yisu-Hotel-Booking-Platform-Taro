@@ -20,7 +20,7 @@ export default function User() {
       iconBg: '#fff3f0',
       title: '我的订单',
       desc: '查看全部订单',
-      onClick: () => Taro.navigateTo({ url: '/packages/hotel/pages/order/index' })
+      onClick: () => Taro.navigateTo({ url: '/packages/user/pages/order-list/index' })
     },
     {
       icon: '❤️',

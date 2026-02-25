@@ -5,6 +5,7 @@ import Taro from "@tarojs/taro";
 // 用户信息接口
 export interface UserInfo {
   id?: string;
+  openid?: string;
   code?: string; // 使用微信code作为唯一标识
   nickname?: string;
   avatar?: string;

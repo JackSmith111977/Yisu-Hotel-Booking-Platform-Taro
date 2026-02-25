@@ -51,12 +51,19 @@ exports.main = async (event, context) => {
     }
 
     // 其他操作正常处理
+    const allowedParams = {};
+    for (const key of Object.keys(params)) {
+      if (!['tcbContext', 'userInfo', 'cloudContext'].includes(key)) {
+        allowedParams[key] = params[key];
+      }
+    }
+    
     const result = await cloud.callFunction({
       name: 'supabase-proxy',
       data: {
         action: 'rpc',
         rpcName: action,
-        params: params,
+        params: allowedParams,
       },
     });
 

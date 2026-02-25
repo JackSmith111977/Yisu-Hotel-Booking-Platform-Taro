@@ -211,6 +211,34 @@ class AuthService {
       };
     }
   }
+
+  async getUserOrders(openid: string): Promise<{ success: boolean; orders: any[] }> {
+    try {
+      const result = await Taro.cloud.callFunction({
+        name: 'auth-service',
+        data: {
+          action: 'get_user_orders',
+          p_openid: openid
+        },
+      });
+
+      console.log('获取订单列表结果:', result);
+
+      const resultData = result.result as any;
+      console.log('resultData:', resultData);
+      if (resultData && resultData.data && Array.isArray(resultData.data)) {
+        console.log('订单数据:', resultData.data);
+        return {
+          success: true,
+          orders: resultData.data
+        };
+      }
+      return { success: true, orders: [] };
+    } catch (error) {
+      console.error('获取订单列表失败:', error);
+      return { success: false, orders: [] };
+    }
+  }
 }
 
 export const authService = new AuthService();
