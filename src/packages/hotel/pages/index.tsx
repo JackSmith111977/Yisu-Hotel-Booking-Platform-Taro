@@ -6,6 +6,7 @@ import { callSupabase } from '@/utils/supabase'
 import { useBookingStore } from '@/store/bookingStore'
 import { useUserStore } from '@/store/userStore'
 import { authService } from '@/services/auth'
+import { useSearchStore } from '@/store/searchStore'
 import { useState } from 'react'
 import { HotelType } from '../../../types/detailPage/hotel'
 import HotelSwiper from '../components/HotelSwiper'
@@ -35,11 +36,16 @@ const toStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 const HotelDetail = () => {
+  const searchParams = useSearchStore(state => state.params)
+  
   const [hotel, setHotel] = useState<HotelType>()
-  const [dateRange, setDateRange] = useState<DateRange>({
-    start: new Date(),
-    end: (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d })(),
-    nights: 1,
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    const start = searchParams?.checkInDate ? new Date(searchParams.checkInDate) : new Date()
+    const end = searchParams?.checkOutDate 
+      ? new Date(searchParams.checkOutDate) 
+      : (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d })()
+    const nights = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    return { start, end, nights: nights > 0 ? nights : 1 }
   })
   const [roomGuest, setRoomGuest] = useState<RoomGuest>({
     rooms: 1,
