@@ -125,6 +125,21 @@ const OrderPage = () => {
     })
   
     if (error) throw error
+
+    console.log('[订单提交成功]', {
+      user_id: userUuid,
+      hotel_id: hotelId,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      nights,
+      adult_count: adultCount,
+      child_count: childCount,
+      guest_name: guestName.trim(),
+      guest_phone: phone,
+      total_amount: total,
+      paid_amount: total,
+      rooms,
+    })
   
     // 2. 更新 room_availability 的 booked_count
     // 生成入住日期区间内的所有日期（不含退房日）

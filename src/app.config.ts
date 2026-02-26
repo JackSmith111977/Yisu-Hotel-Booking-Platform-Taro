@@ -1,6 +1,7 @@
 export default defineAppConfig({
   // 主包页面
-  pages: ["pages/home/index", "pages/user/index", "pages/hotel_test/index"],
+  pages: ["pages/home/index", "pages/user/index"],
+  // pages: ["pages/home/index", "pages/user/index", "pages/hotel_test/index"],
   // 分包配置
   subPackages: [
     // 搜索分包
@@ -47,11 +48,11 @@ export default defineAppConfig({
         text: "我的",
         // iconPath: ...
       },
-      {
-        pagePath: "pages/hotel_test/index",
-        text: "酒店详情页测试入口",
-        // iconPath: ...
-      },
+      // {
+      //   pagePath: "pages/hotel_test/index",
+      //   text: "酒店详情页测试入口",
+      //   // iconPath: ...
+      // },
     ],
   },
   window: {

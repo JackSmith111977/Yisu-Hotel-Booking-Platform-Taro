@@ -63,12 +63,12 @@ export default function TopNavBar({ isFavorited, onToggleFavorite, loading }: To
               <HeartF size={16} color='#fff' />
             )}
           </View>
-          <View
+          {/* <View
             className='nav-btn'
             style={{ width: `${btnHeight}px`, height: `${btnHeight}px` }}
           >
             <ShareF size={16} color='#fff' />
-          </View>
+          </View> */}
         </View>
       </View>
     </View>

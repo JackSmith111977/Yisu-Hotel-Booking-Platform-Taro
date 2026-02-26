@@ -49,7 +49,7 @@ export default function StickyTopBar({ visible, name }: StickyTopBarProps) {
           <Text className='sticky-nav-title-text'>{name}</Text>
         </View>
 
-        <View className='sticky-nav-right'>
+        {/* <View className='sticky-nav-right'>
           <View className='sticky-nav-action'>
             <HeartF size={14} color='#333' />
             <Text className='sticky-nav-action-label'>收藏</Text>
@@ -58,7 +58,7 @@ export default function StickyTopBar({ visible, name }: StickyTopBarProps) {
             <ShareF size={14} color='#333' />
             <Text className='sticky-nav-action-label'>分享</Text>
           </View>
-        </View>
+        </View> */}
       </View>
     </View>
   )

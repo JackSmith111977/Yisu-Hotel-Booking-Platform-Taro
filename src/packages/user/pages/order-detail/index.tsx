@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, Button, Image } from '@tarojs/components'
 import { authService } from '@/services/auth'
 import { useUserStore } from '@/store/userStore'
+import { callSupabase } from '@/utils/supabase'
 import './index.scss'
 
 interface OrderDetail {
@@ -77,7 +78,7 @@ export default function OrderDetail() {
       Taro.showToast({ title: '请先登录', icon: 'none' })
       return
     }
-
+  
     Taro.showModal({
       title: '确认退款',
       content: '确定要申请退款吗？退款后订单将变为已退款状态。',
@@ -85,6 +86,9 @@ export default function OrderDetail() {
         if (res.confirm && order) {
           const result = await authService.refundOrder(String(order.id), userInfo.openid || '')
           if (result.success) {
+            // 退款成功后，减少 booked_count
+            await decrementBookedCount(order)
+  
             Taro.showToast({ title: result.message, icon: 'success' })
             loadOrderDetail(String(order.id))
           } else {
@@ -93,6 +97,39 @@ export default function OrderDetail() {
         }
       }
     })
+  }
+
+  // 新增辅助函数
+  const decrementBookedCount = async (orderData: OrderDetail) => {
+    // 生成入住日期区间（不含退房日）
+    const dateList: string[] = []
+    const start = new Date(orderData.check_in_date)
+    const end = new Date(orderData.check_out_date)
+    for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+      dateList.push(d.toISOString().slice(0, 10))
+    }
+
+    // order.rooms 格式：[{ room_type_id, quantity, ... }]
+    const updatePromises = orderData.rooms.flatMap(room =>
+      dateList.map(date =>
+        callSupabase({
+          action: 'rpc',
+          rpcName: 'decrement_booked_count',
+          params: {
+            p_room_type_id: room.room_type_id,
+            p_date: date,
+            p_decrement: room.quantity,
+          },
+        })
+      )
+    )
+
+    const results = await Promise.all(updatePromises)
+    const error = results.find(r => r.error)
+    if (error?.error) {
+      console.error('更新 booked_count 失败:', error.error)
+      // 这里可以决定是否向用户提示，通常退款已成功所以不阻断流程
+    }
   }
 
   const handleDelete = async () => {
