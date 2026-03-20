@@ -249,9 +249,9 @@ create table public.room_types (
 ### 4. Order (订单信息)
 
 *   **前端接口**: `src/store/bookingStore.ts` -> `BookingStore` (部分映射)
-*   **数据库表**: `public.orders`
+*   **数据库表**: `public.orders` + `public.order_items`
 
-#### 字段映射
+#### 字段映射 — `orders` 表
 | Interface Property | Table Column | Type (TS) | Type (DB) | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
 | `id` | `id` | `number` | `bigint` | 订单ID |
@@ -260,35 +260,67 @@ create table public.room_types (
 | `checkInDate` | `check_in_date` | `string` | `date` | 入住日期 |
 | `checkOutDate` | `check_out_date` | `string` | `date` | 离店日期 |
 | `nights` | `nights` | `number` | `integer` | 入住晚数 |
-| `items` | `rooms` | `BookingItem[]` | `jsonb` | 预订房型列表 |
-| `totalPrice` | `total_amount` | `number` | `numeric` | 订单总金额 |
-| `guestName` | `guest_name` | `string` | `varchar` | 住客姓名 |
-| `guestPhone` | `guest_phone` | `string` | `varchar` | 联系电话 |
+| `adultCount` | `adult_count` | `number` | `integer` | 成人数 |
+| `childCount` | `child_count` | `number` | `integer` | 儿童数 |
+| `totalPrice` | `total_amount` | `number` | `numeric(10,2)` | 订单总金额 |
+| `paidAmount` | `paid_amount` | `number` | `numeric(10,2)` | 已支付金额 |
+| `guestName` | `guest_name` | `string` | `varchar(100)` | 住客姓名 |
+| `guestPhone` | `guest_phone` | `string` | `varchar(20)` | 联系电话 |
 | `specialRequests` | `special_requests`| `string` | `text` | 特殊要求 |
 | `status` | `status` | `string` | `text` | 订单状态 (待付款/已支付/已取消等) |
+| `createdAt` | `created_at` | `string` | `timestamptz` | 创建时间 |
+| `updatedAt` | `updated_at` | `string` | `timestamptz` | 更新时间 |
+
+#### 字段映射 — `order_items` 表
+| Interface Property | Table Column | Type (TS) | Type (DB) | 说明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | `id` | `number` | `bigint` | 明细ID |
+| `orderId` | `order_id` | `number` | `bigint` | 关联订单ID (FK → orders.id) |
+| `roomTypeId` | `room_type_id` | `number` | `bigint` | 房型ID |
+| `quantity` | `quantity` | `number` | `integer` | 预订房间数 |
+| `pricePerNight` | `price_per_night` | `number` | `numeric(10,2)` | 每晚单价 |
+| `createdAt` | `created_at` | `string` | `timestamptz` | 创建时间 |
 
 #### 表结构定义 (SQL)
 ```sql
-create table public.orders ( 
-   id bigint generated always as identity not null, 
-   user_id uuid not null, 
-   hotel_id bigint not null, 
-   check_in_date date not null, 
-   check_out_date date not null, 
-   nights integer not null, 
-   adult_count integer not null default 1, 
-   child_count integer not null default 0, 
-   guest_name character varying(100) not null, 
-   guest_phone character varying(20) not null, 
-   total_amount numeric(10, 2) not null, 
-   paid_amount numeric(10, 2) null default 0, 
-   special_requests text null, 
-   created_at timestamp with time zone null default now(), 
-   updated_at timestamp with time zone null default now(), 
-   rooms jsonb not null default '[]'::jsonb, 
-   constraint orders_pkey primary key (id), 
-   constraint orders_hotel_id_fkey foreign KEY (hotel_id) references hotels (id) 
- ) TABLESPACE pg_default;
+-- 主表：订单信息
+CREATE TABLE public.orders (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL,
+  user_id         UUID NOT NULL,
+  hotel_id        BIGINT NOT NULL,
+  check_in_date   DATE NOT NULL,
+  check_out_date  DATE NOT NULL,
+  nights          INTEGER NOT NULL,
+  adult_count     INTEGER NOT NULL DEFAULT 1,
+  child_count     INTEGER NOT NULL DEFAULT 0,
+  guest_name      CHARACTER VARYING(100) NOT NULL,
+  guest_phone     CHARACTER VARYING(20) NOT NULL,
+  total_amount    NUMERIC(10, 2) NOT NULL,
+  paid_amount     NUMERIC(10, 2) NULL DEFAULT 0,
+  special_requests TEXT NULL,
+  created_at      TIMESTAMPTZ NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NULL DEFAULT NOW(),
+  status          TEXT NOT NULL DEFAULT 'pending',
+  CONSTRAINT orders_pkey PRIMARY KEY (id),
+  CONSTRAINT orders_hotel_id_fkey FOREIGN KEY (hotel_id) REFERENCES hotels (id)
+) TABLESPACE pg_default;
+
+-- 明细表：订单房型明细（从 orders.rooms JSONB 拆分）
+CREATE TABLE public.order_items (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL,
+  order_id        BIGINT NOT NULL,
+  room_type_id    BIGINT NOT NULL,
+  quantity        INTEGER NOT NULL DEFAULT 1,
+  price_per_night NUMERIC(10, 2) NOT NULL,
+  created_at      TIMESTAMPTZ NULL DEFAULT NOW(),
+  CONSTRAINT order_items_pkey PRIMARY KEY (id),
+  CONSTRAINT order_items_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
+  CONSTRAINT order_items_room_type_id_fkey FOREIGN KEY (room_type_id) REFERENCES room_types (id)
+) TABLESPACE pg_default;
+
+-- 索引
+CREATE INDEX idx_order_items_room_type ON order_items (room_type_id);
+CREATE INDEX idx_orders_status_checkin_checkout ON orders (status, check_in_date, check_out_date);
 ```
 
 ### 5. Tag (标签信息)

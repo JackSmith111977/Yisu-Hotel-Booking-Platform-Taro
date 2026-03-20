@@ -27,7 +27,7 @@ BEGIN
   END IF;
   
   FOR rec IN 
-    SELECT 
+    SELECT
       o.id,
       o.hotel_id,
       h.name_zh AS hotel_name,
@@ -36,21 +36,21 @@ BEGIN
       o.total_amount,
       o.created_at,
       o.nights,
-      o.rooms,
       o.status
     FROM orders o
     LEFT JOIN hotels h ON o.hotel_id = h.id
     WHERE o.user_id = v_user_uuid
     ORDER BY o.created_at DESC
   LOOP
-    SELECT 
+    SELECT
       string_agg(
-        COALESCE(rt.name, r->>'room_type_name', '标准间') || ' x ' || (r->>'quantity')::TEXT,
+        COALESCE(rt.name, '标准间') || ' x ' || oi.quantity::TEXT,
         ', '
       )
     INTO v_room_types
-    FROM jsonb_array_elements(rec.rooms) r
-    LEFT JOIN room_types rt ON (r->>'room_type_id')::BIGINT = rt.id;
+    FROM order_items oi
+    LEFT JOIN room_types rt ON oi.room_type_id = rt.id
+    WHERE oi.order_id = rec.id;
     
     RETURN QUERY VALUES (
       rec.id,
@@ -95,9 +95,10 @@ SECURITY DEFINER
 AS $$
 DECLARE
   v_room_types TEXT;
+  v_rooms_json JSONB;
   rec RECORD;
 BEGIN
-  FOR rec IN 
+  FOR rec IN
     SELECT
       o.id,
       o.hotel_id,
@@ -114,21 +115,34 @@ BEGIN
       o.paid_amount,
       o.special_requests::TEXT,
       o.created_at,
-      o.rooms,
       o.status
     FROM orders o
     LEFT JOIN hotels h ON o.hotel_id = h.id
     WHERE o.id = p_order_id
   LOOP
-    SELECT 
+    SELECT
       string_agg(
-        COALESCE(rt.name, r->>'room_type_name', '标准间') || ' x ' || (r->>'quantity')::TEXT,
+        COALESCE(rt.name, '标准间') || ' x ' || oi.quantity::TEXT,
         ', '
       )
     INTO v_room_types
-    FROM jsonb_array_elements(rec.rooms) r
-    LEFT JOIN room_types rt ON (r->>'room_type_id')::BIGINT = rt.id;
-    
+    FROM order_items oi
+    LEFT JOIN room_types rt ON oi.room_type_id = rt.id
+    WHERE oi.order_id = rec.id;
+
+    SELECT jsonb_agg(
+      jsonb_build_object(
+        'room_type_id', oi.room_type_id,
+        'room_type_name', rt.name,
+        'quantity', oi.quantity,
+        'price_per_night', oi.price_per_night
+      )
+    )
+    INTO v_rooms_json
+    FROM order_items oi
+    LEFT JOIN room_types rt ON oi.room_type_id = rt.id
+    WHERE oi.order_id = rec.id;
+
     RETURN QUERY VALUES (
       rec.id,
       rec.hotel_id,
@@ -147,7 +161,7 @@ BEGIN
       rec.special_requests,
       COALESCE(rec.status, 2),
       rec.created_at,
-      rec.rooms
+      v_rooms_json
     );
   END LOOP;
 END;

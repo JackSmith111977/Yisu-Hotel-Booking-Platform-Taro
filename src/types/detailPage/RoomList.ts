@@ -17,13 +17,6 @@ export interface RoomType {
   facilities: string[];
 }
 
-export interface RoomAvailability {
-  room_type_id: number;
-  date: string;
-  total_count: number;
-  booked_count: number;
-}
-
 export interface RoomGuest {
   rooms: number
   adults: number

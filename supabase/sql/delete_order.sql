@@ -22,6 +22,9 @@ BEGIN
     RETURN QUERY SELECT FALSE, '订单不存在';
   END IF;
   
+  -- 删除关联的订单项
+  DELETE FROM order_items WHERE order_id = p_order_id;
+
   -- 删除订单
   DELETE FROM orders WHERE id = p_order_id AND user_id = v_user_uuid;
   

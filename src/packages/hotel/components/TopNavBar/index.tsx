@@ -1,6 +1,6 @@
 import { View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { ArrowLeft, HeartF, Heart, ShareF, Loading } from '@nutui/icons-react-taro'
+import { ArrowLeft, HeartF, Heart, Loading } from '@nutui/icons-react-taro'
 import './index.scss'
 
 interface TopNavBarProps {
