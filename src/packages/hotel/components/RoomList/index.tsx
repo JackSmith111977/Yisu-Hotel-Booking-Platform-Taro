@@ -3,7 +3,7 @@ import Taro from "@tarojs/taro";
 import { View, Text, Image } from "@tarojs/components";
 import { Tag, Button } from "@nutui/nutui-react-taro";
 import { callSupabase } from "@/utils/supabase";
-import { BedInfo, RoomType, RoomAvailability } from "@/types/detailPage/RoomList";
+import { BedInfo, RoomType } from "@/types/detailPage/RoomList";
 import { useBookingStore } from '@/store/bookingStore'
 import { useUserStore } from '@/store/userStore'
 import "./index.scss";
@@ -53,13 +53,12 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
           params: { eq: { hotel_id: hotelId } },
         }),
         callSupabase({
-          action: "table",
-          table: "room_availability",
-          method: "select",
-          query: "*",
+          action: 'rpc',
+          rpcName: 'get_room_availability_by_range',
           params: {
-            gte: { date: targetStart },
-            lt: { date: targetEnd },
+            p_hotel_id: hotelId,
+            p_check_in: targetStart,
+            p_check_out: targetEnd,
           },
         }),
       ]);
@@ -69,16 +68,9 @@ const RoomList = ({ hotelId, checkInDate, checkOutDate, nights, adultCount, chil
 
       if (availRes.error) console.error("获取可用数量失败:", availRes.error);
       if (availRes.data) {
-        const grouped: Record<number, number[]> = {};
-        (availRes.data as RoomAvailability[]).forEach((item) => {
-          const avail = item.total_count - item.booked_count;
-          if (!grouped[item.room_type_id]) grouped[item.room_type_id] = [];
-          grouped[item.room_type_id].push(avail);
-        });
         const map: Record<number, number> = {};
-        Object.entries(grouped).forEach(([id, counts]) => {
-          map[Number(id)] = Math.min(...counts);
-        });
+        (availRes.data as { room_type_id: number; available_count: number }[])
+          .forEach(item => { map[item.room_type_id] = item.available_count; });
         setAvailabilityMap(map);
       }
 

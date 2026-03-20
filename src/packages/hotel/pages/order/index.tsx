@@ -93,17 +93,10 @@ const OrderPage = () => {
       return
     }
 
-    const rooms = items.map(item => ({
-      room_type_id: item.roomTypeId,
-      room_type_name: item.roomName,
-      room_price_per_night: item.price,
-      quantity: item.count,
-    }))
-  
     const total = totalPrice()
-  
+
     // 1. 插入订单
-    const { error } = await callSupabase({
+    const { data: orderData, error } = await callSupabase({
       action: 'table',
       table: 'orders',
       method: 'insert',
@@ -120,54 +113,30 @@ const OrderPage = () => {
         total_amount: total,
         paid_amount: total,
         special_requests: null,
-        rooms,
       },
     })
-  
+
     if (error) throw error
 
-    console.log('[订单提交成功]', {
-      user_id: userUuid,
-      hotel_id: hotelId,
-      check_in_date: checkInDate,
-      check_out_date: checkOutDate,
-      nights,
-      adult_count: adultCount,
-      child_count: childCount,
-      guest_name: guestName.trim(),
-      guest_phone: phone,
-      total_amount: total,
-      paid_amount: total,
-      rooms,
-    })
-  
-    // 2. 更新 room_availability 的 booked_count
-    // 生成入住日期区间内的所有日期（不含退房日）
-    const dateList: string[] = []
-    const start = new Date(checkInDate)
-    const end = new Date(checkOutDate)
-    for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
-      dateList.push(d.toISOString().slice(0, 10))
-    }
-  
-    // 对每个房型、每个日期更新 booked_count
-    const updatePromises = items.flatMap(item =>
-      dateList.map(date =>
-        callSupabase({
-          action: 'rpc',
-          rpcName: 'increment_booked_count',
-          params: {
-            p_room_type_id: item.roomTypeId,
-            p_date: date,
-            p_increment: item.count,
-          },
-        })
-      )
+    const orderId = orderData[0].id
+
+    // 2. 插入 order_items
+    const itemInsertErrors = await Promise.all(
+      items.map(item => callSupabase({
+        action: 'table',
+        table: 'order_items',
+        method: 'insert',
+        data: {
+          order_id: orderId,
+          room_type_id: item.roomTypeId,
+          quantity: item.count,
+          price_per_night: item.price,
+        },
+      }))
     )
-  
-    const results = await Promise.all(updatePromises)
-    const updateError = results.find(r => r.error)
-    if (updateError?.error) throw updateError.error
+    const itemInsertError = itemInsertErrors.find(r => r.error)
+    if (itemInsertError?.error) throw itemInsertError.error
+
   }
 
   const handlePay = () => {

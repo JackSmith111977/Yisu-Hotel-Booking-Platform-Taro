@@ -43,32 +43,23 @@ export async function recommendRooms(
     });
     if (e1 || !roomTypes) throw e1;
 
-    const roomIds: number[] = roomTypes.map((r: RoomType) => r.id);
-
     // 2. 获取可用库存
     const { data: availability, error: e2 } = await callSupabase({
-        action: "table",
-        table: "room_availability",
-        method: "select",
-        query: "room_type_id,total_count,booked_count,date",
+        action: 'rpc',
+        rpcName: 'get_room_availability_by_range',
         params: {
-            in: { room_type_id: `(${roomIds.join(",")})` },
-            gte: { date: checkIn },
-            lt: { date: checkOut },
+            p_hotel_id: hotelId,
+            p_check_in: checkIn,
+            p_check_out: checkOut,
         },
     });
     if (e2) throw e2;
 
-    // 3. 计算每个房型在整个入住区间的最小可用数
+    // 3. 构建房型可用数映射
     const availMap: Record<number, number> = {};
     if (availability) {
-        const grouped: Record<number, number[]> = {};
-        for (const row of availability) {
-            if (!grouped[row.room_type_id]) grouped[row.room_type_id] = [];
-            grouped[row.room_type_id].push(row.total_count - row.booked_count);
-        }
-        for (const [rtId, counts] of Object.entries(grouped)) {
-            availMap[Number(rtId)] = Math.min(...(counts as number[]));
+        for (const row of availability as { room_type_id: number; available_count: number }[]) {
+            availMap[row.room_type_id] = row.available_count;
         }
     }
 
